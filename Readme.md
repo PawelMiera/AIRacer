@@ -42,4 +42,7 @@ In another console:
 
 ``` 
 ./mavlink_control
-```
+```    
+
+After being asked type your device name from socat.   
+Ende!
