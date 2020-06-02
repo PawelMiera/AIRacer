@@ -32,11 +32,13 @@ sudo service mosquitto restart
 
 Now run Ardupilot SITL   
 
+In new console:   
+
 ```     
 python mqttClient.py
 ``` 
    
-In new console:   
+In another console:   
 
 ``` 
 ./mavlink_control
