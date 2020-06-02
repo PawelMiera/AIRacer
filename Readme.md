@@ -34,5 +34,10 @@ Now run Ardupilot SITL
 
 ```     
 python mqttClient.py
+``` 
+   
+In new console:   
+
+``` 
 ./mavlink_control
 ```
