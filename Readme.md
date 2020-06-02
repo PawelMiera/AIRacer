@@ -1,2 +1,6 @@
-!Fast setup:
+Fast setup:
+========================
 
+```
+$ pip install paho-mqtt
+```
