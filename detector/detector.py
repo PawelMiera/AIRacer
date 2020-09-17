@@ -1,4 +1,4 @@
-from settings.settings import Values
+from settings.settings import Values, Constants
 import importlib.util
 import cv2
 import numpy as np
@@ -36,7 +36,6 @@ class Detector:
         print("Model init success!")
 
     def detect(self, frame):
-        points = []
         image = cv2.resize(frame, (self.width, self.height))
         image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         input_data = np.expand_dims(image_rgb, axis=0)
@@ -46,13 +45,19 @@ class Detector:
         classes = self.interpreter.get_tensor(self.output_details[1]['index'])[0]
         scores = self.interpreter.get_tensor(self.output_details[2]['index'])[0]
 
+        height, width, channels = frame.shape
+        good_scores = []
+        good_boxes = []
+        good_classes = []
         for i in range(len(scores)):
             if (scores[i] > Values.DETECTION_THRESHOLD) and (scores[i] <= 1.0):
-                ymin = int(max(1, (boxes[i][0] * Values.CAMERA_HEIGHT)))
-                xmin = int(max(1, (boxes[i][1] * Values.CAMERA_WIDTH)))
-                ymax = int(min(Values.CAMERA_HEIGHT, (boxes[i][2] * Values.CAMERA_HEIGHT)))
-                xmax = int(min(Values.CAMERA_WIDTH, (boxes[i][3] * Values.CAMERA_WIDTH)))
-
+                ymin = int(max(1, (boxes[i][0] * height)))
+                xmin = int(max(1, (boxes[i][1] * width)))
+                ymax = int(min(height, (boxes[i][2] * height)))
+                xmax = int(min(width, (boxes[i][3] * width)))
+                good_boxes.append(boxes[i])
+                good_scores.append(scores[i])
+                good_classes.append(classes[i])
                 cv2.rectangle(frame, (xmin, ymin), (xmax, ymax), (10, 255, 0), 2)
 
                 object_name = self.labels[int(classes[i])]
@@ -64,10 +69,64 @@ class Detector:
                               (xmin + labelSize[0], label_ymin + baseLine - 10), (255, 255, 255), cv2.FILLED)
                 cv2.putText(frame, label, (xmin, label_ymin - 7), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 0), 2)
 
-                points.append(boxes[i])
-
                 if Values.SHOW_IMAGES:
                     cv2.imshow("View", frame)
                     cv2.waitKey(1)
 
-        return points
+        mids = self.check_detections(good_boxes, good_classes, good_scores)
+        rad = 4
+        for mid in mids:
+            frame = cv2.circle(frame, (int(mid[0]*width), int(mid[1]*height)), rad, (0, 0, 255), 2)
+            rad += 6
+
+
+        return 0
+
+    def check_detections(self, boxes, classes, scores):
+        corners_ind = []
+        gate_ind = []
+        corners = 0
+        corners_score = 0
+        gate_score = 0
+        mids = []
+        for i in range(len(scores)):
+            if int(classes[i]) == Constants.LD or int(classes[i]) == Constants.LU \
+                    or int(classes[i]) == Constants.RD or int(classes[i]) == Constants.RU:
+                corners_score += scores[i]
+                corners += 1
+                corners_ind.append(i)
+            else:
+                gate_score = scores[i]
+                gate_ind.append(i)
+        corners_score /= corners
+        #print("c", corners_score, "g", gate_score)
+
+        corner_mids = []
+        for ind in corners_ind:
+            max_y = boxes[ind][2]
+            min_y = boxes[ind][0]
+            max_x = boxes[ind][3]
+            min_x = boxes[ind][1]
+            c_mid = (min_x + (max_x - min_x) / 2, min_y + (max_y - min_y) / 2)
+            corner_mids.append(c_mid)
+
+        corner_mid = np.mean(corner_mids, axis=0)
+        mids.append(corner_mid)
+
+        for ind in gate_ind:
+            max_y = boxes[ind][2]
+            min_y = boxes[ind][0]
+            max_x = boxes[ind][3]
+            min_x = boxes[ind][1]
+            gate_mid = [min_x + (max_x - min_x) / 2, min_y + (max_y - min_y) / 2]
+            mids.append(gate_mid)
+
+
+        return mids
+
+        """print(scores[i], end=" ")
+        print("classes ", end="")
+        print(classes[i], end=" ")"""
+
+        """print(" " + str(corners))
+        print()"""

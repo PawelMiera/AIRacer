@@ -1,11 +1,11 @@
 from threading import Timer
-from settings.settings import PID_Settings
+from settings.settings import PIDSettings
 import time
 
 class PID:
-    def __init__(self, set_point, pid_min, pid_max, Kp, Ki, Kd):
+    def __init__(self, set_point, pid_min, pid_max, Kp, Ki, Kd, start_from_min=False):
         self._timer = None
-        self.dt = PID_Settings.PID_REPEAT_TIME
+        self.dt = PIDSettings.PID_REPEAT_TIME
         self.is_running = False
         self.start()
         self.Kp = Kp
@@ -18,7 +18,9 @@ class PID:
         self.last_e = None
         self.sum_e = 0
         self.value = None
-        self.output = None
+        self.output = (self.min - self.max) / 2
+        if start_from_min:
+            self.output = self.min
 
     def start(self):
         if not self.is_running:
@@ -49,15 +51,20 @@ class PID:
 
             self.sum_e += (e * self.dt)
 
-            if self.sum_e > PID_Settings.PID_I_MAX:
-                self.sum_e = PID_Settings.PID_I_MAX
-            if self.sum_e < - PID_Settings.PID_I_MAX:
-                self.sum_e = - PID_Settings.PID_I_MAX
+            if self.sum_e > PIDSettings.PID_I_MAX:
+                self.sum_e = PIDSettings.PID_I_MAX
+            if self.sum_e < - PIDSettings.PID_I_MAX:
+                self.sum_e = - PIDSettings.PID_I_MAX
 
             I = self.Ki * self.sum_e
 
             #self.output = self.Kp * (e + D + I)
-            self.output = self.Kp * e + D + I
+            PID_sum = self.Kp * e + D + I
+
+            if PID_sum > self.max:
+                PID_sum = self.max
+            if PID_sum < self.min:
+                PID_sum = self.min
+
+            self.output = PID_sum
             self.last_e = e
-        else:
-            self.output = 0

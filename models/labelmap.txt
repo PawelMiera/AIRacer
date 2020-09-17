@@ -1,5 +1,9 @@
 ???
-Big
+RU
+LU
+Gate
+RD
+LD
 Small
 Medium
 LU
