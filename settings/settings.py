@@ -16,6 +16,7 @@ class Values:
     SHOW_IMAGES = False
     PRINT_FPS = True
     SEND_IMAGES_WIFI = False
+    WINDOWS_GPU = False
     CAMERA = 0
     CAMERA_WIDTH = 640
     CAMERA_HEIGHT = 480

@@ -2,6 +2,7 @@ import cv2
 from settings.settings import Values
 import time
 
+
 class Camera:
     def __init__(self):
         self.camera = cv2.VideoCapture(Values.CAMERA)

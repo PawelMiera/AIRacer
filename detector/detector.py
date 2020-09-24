@@ -12,20 +12,25 @@ class Detector:
         if self.labels[0] == '???':
             del (self.labels[0])
 
-        pkg = importlib.util.find_spec('tflite_runtime')
-        if pkg:
-            from tflite_runtime.interpreter import Interpreter
-            if Values.USE_EDGE_TPU:
-                from tflite_runtime.interpreter import load_delegate
+        if Values.WINDOWS_GPU:
+            import tensorflow as tf
+            self.interpreter = tf.lite.Interpreter(model_path=model_path, num_threads=12)
+
         else:
-            from tensorflow.lite.python.interpreter import Interpreter
+            pkg = importlib.util.find_spec('tflite_runtime')
+            if pkg:
+                from tflite_runtime.interpreter import Interpreter
+                if Values.USE_EDGE_TPU:
+                    from tflite_runtime.interpreter import load_delegate
+            else:
+                from tensorflow.lite.python.interpreter import Interpreter
+                if Values.USE_EDGE_TPU:
+                    from tensorflow.lite.python.interpreter import load_delegate
             if Values.USE_EDGE_TPU:
-                from tensorflow.lite.python.interpreter import load_delegate
-        if Values.USE_EDGE_TPU:
-            self.interpreter = Interpreter(model_path=model_path,
-                                           experimental_delegates=[load_delegate('libedgetpu.so.1.0')])
-        else:
-            self.interpreter = Interpreter(model_path=model_path)
+                self.interpreter = Interpreter(model_path=model_path,
+                                               experimental_delegates=[load_delegate('libedgetpu.so.1.0')])
+            else:
+                self.interpreter = Interpreter(model_path=model_path)
         self.interpreter.allocate_tensors()
 
         self.input_details = self.interpreter.get_input_details()
@@ -72,61 +77,177 @@ class Detector:
                 if Values.SHOW_IMAGES:
                     cv2.imshow("View", frame)
                     cv2.waitKey(1)
+        mid = self.check_detections(good_boxes, good_classes, good_scores)
+        if mid is None:
+            return None
+        else:
+            cv2.circle(frame, (int(mid[0] * width), int(mid[1] * height)), 15, (0, 0, 255), 2)
+            return mid
 
-        mids = self.check_detections(good_boxes, good_classes, good_scores)
-        rad = 4
-        for mid in mids:
-            frame = cv2.circle(frame, (int(mid[0]*width), int(mid[1]*height)), rad, (0, 0, 255), 2)
-            rad += 6
 
-
-        return 0
 
     def check_detections(self, boxes, classes, scores):
-        corners_ind = []
-        gate_ind = []
+        LD = -1
+        LU = -1
+        RD = -1
+        RU = -1
+        Gate = -1
+        LD_score = 0
+        LU_score = 0
+        RD_score = 0
+        RU_score = 0
+        Gate_score = 0
         corners = 0
-        corners_score = 0
-        gate_score = 0
-        mids = []
+        Corners_score = 0
+        mid = None
+
         for i in range(len(scores)):
-            if int(classes[i]) == Constants.LD or int(classes[i]) == Constants.LU \
-                    or int(classes[i]) == Constants.RD or int(classes[i]) == Constants.RU:
-                corners_score += scores[i]
-                corners += 1
-                corners_ind.append(i)
-            else:
-                gate_score = scores[i]
-                gate_ind.append(i)
-        corners_score /= corners
-        #print("c", corners_score, "g", gate_score)
+            if classes[i] == Constants.LD:
+                if scores[i] > LD_score:
+                    LD = i
+                    LD_score = scores[i]
+            elif classes[i] == Constants.LU:
+                if scores[i] > LU_score:
+                    LU = i
+                    LU_score = scores[i]
+            elif classes[i] == Constants.RD:
+                if scores[i] > RD_score:
+                    RD = i
+                    RD_score = scores[i]
+            elif classes[i] == Constants.RU:
+                if scores[i] > RU_score:
+                    RU = i
+                    RU_score = scores[i]
+            elif classes[i] == Constants.GATE:
+                if scores[i] > Gate_score:
+                    Gate = i
+                    Gate_score = scores[i]
 
-        corner_mids = []
-        for ind in corners_ind:
-            max_y = boxes[ind][2]
-            min_y = boxes[ind][0]
-            max_x = boxes[ind][3]
-            min_x = boxes[ind][1]
-            c_mid = (min_x + (max_x - min_x) / 2, min_y + (max_y - min_y) / 2)
-            corner_mids.append(c_mid)
+        if LD_score != 0:
+            Corners_score += LD_score
+            corners += 1
+        if LU_score != 0:
+            Corners_score += LU_score
+            corners += 1
+        if RD_score != 0:
+            Corners_score += RD_score
+            corners += 1
+        if RU_score != 0:
+            Corners_score += RU_score
+            corners += 1
 
-        corner_mid = np.mean(corner_mids, axis=0)
-        mids.append(corner_mid)
+        Corners_score /= corners
 
-        for ind in gate_ind:
-            max_y = boxes[ind][2]
-            min_y = boxes[ind][0]
-            max_x = boxes[ind][3]
-            min_x = boxes[ind][1]
+        """Wszystkie możliwosci katow"""
+
+        if Gate_score == 0 and Corners_score == 0:
+            return None
+
+
+            return mid
+
+        if Gate_score >= Corners_score or (Gate_score != 0 and corners == 1):
+            print("Gate")
+            max_y = boxes[Gate][2]
+            min_y = boxes[Gate][0]
+            max_x = boxes[Gate][3]
+            min_x = boxes[Gate][1]
             gate_mid = [min_x + (max_x - min_x) / 2, min_y + (max_y - min_y) / 2]
-            mids.append(gate_mid)
+            mid = gate_mid
 
+        elif Gate_score == 0 and corners == 1:
+            if LU != -1:
+                mid = (boxes[LU][3], boxes[LU][2])
+            elif LD != -1:
+                mid = (boxes[LD][3], boxes[LD][0])
+            elif RD != -1:
+                mid = (boxes[RD][1], boxes[RD][0])
+            elif RU != -1:
+                mid = (boxes[RU][1], boxes[RU][2])
 
-        return mids
-
-        """print(scores[i], end=" ")
-        print("classes ", end="")
-        print(classes[i], end=" ")"""
-
-        """print(" " + str(corners))
-        print()"""
+        else:
+            print("Corners")
+            if corners == 4:
+                points = [(boxes[LU][1], boxes[LU][0]), (boxes[LD][1], boxes[LD][2]), (boxes[RU][3], boxes[RU][0]),
+                          (boxes[RD][3], boxes[RD][2])]
+                corner_mid = np.mean(points, axis=0)
+                mid = corner_mid
+            elif corners == 3:
+                if LD == -1:
+                    y_max = (boxes[LU][0] + boxes[RU][0]) / 2
+                    y_min = boxes[RD][2]
+                    y = (y_max + y_min) / 2
+                    x_max = (boxes[RU][3] + boxes[RD][3]) / 2
+                    x_min = boxes[LU][1]
+                    x = (x_max + x_min) / 2
+                    mid = (x, y)
+                elif LU == -1:
+                    y_max = boxes[RU][0]
+                    y_min = (boxes[LD][2] + boxes[RD][2]) / 2
+                    y = (y_max + y_min) / 2
+                    x_max = (boxes[RU][3] + boxes[RD][3]) / 2
+                    x_min = boxes[LD][1]
+                    x = (x_max + x_min) / 2
+                    mid = (x, y)
+                elif RU == -1:
+                    y_max = boxes[LU][0]
+                    y_min = (boxes[LD][2] + boxes[RD][2]) / 2
+                    y = (y_max + y_min) / 2
+                    x_max = boxes[RD][3]
+                    x_min = (boxes[LD][1] + boxes[LU][1]) / 2
+                    x = (x_max + x_min) / 2
+                    mid = (x, y)
+                elif RD == -1:
+                    y_max = (boxes[LU][0] + boxes[RU][0]) / 2
+                    y_min = boxes[LD][2]
+                    y = (y_max + y_min) / 2
+                    x_max = boxes[RU][3]
+                    x_min = (boxes[LD][1] + boxes[LU][1]) / 2
+                    x = (x_max + x_min) / 2
+                    mid = (x, y)
+            elif corners == 2:
+                if LD == -1 and LU == -1:
+                    y_min = boxes[RU][0]
+                    y_max = boxes[RD][2]
+                    y = (y_max + y_min) / 2
+                    x = ((boxes[RU][3] + boxes[RD][3]) / 2) - (
+                                y_max - y_min) / 2 * Values.CAMERA_HEIGHT / Values.CAMERA_WIDTH
+                    mid = (x, y)
+                elif RD == -1 and RU == -1:
+                    y_min = boxes[LU][0]
+                    y_max = boxes[LD][2]
+                    y = (y_max + y_min) / 2
+                    x = ((boxes[LU][1] + boxes[LD][1]) / 2) + (
+                                y_max - y_min) / 2 * Values.CAMERA_HEIGHT / Values.CAMERA_WIDTH
+                    mid = (x, y)
+                elif LD == -1 and RD == -1:
+                    x_min = boxes[LU][1]
+                    x_max = boxes[RU][3]
+                    x = (x_max + x_min) / 2
+                    y = ((boxes[LU][0] + boxes[RU][0]) / 2) + (
+                                x_max - x_min) / 2 / Values.CAMERA_HEIGHT * Values.CAMERA_WIDTH
+                    mid = (x, y)
+                elif LU == -1 and RU == -1:
+                    x_min = boxes[LD][1]
+                    x_max = boxes[RD][3]
+                    x = (x_max + x_min) / 2
+                    y = ((boxes[LD][2] + boxes[RD][2]) / 2) - (
+                                x_max - x_min) / 2 / Values.CAMERA_HEIGHT * Values.CAMERA_WIDTH
+                    mid = (x, y)
+                elif LD == -1 and RU == -1:
+                    x_min = boxes[LU][1]
+                    x_max = boxes[RD][3]
+                    x = (x_max + x_min) / 2
+                    y_min = boxes[LU][0]
+                    y_max = boxes[RD][2]
+                    y = (y_max + y_min) / 2
+                    mid = (x, y)
+                elif LU == -1 and RD == -1:
+                    x_min = boxes[LD][1]
+                    x_max = boxes[RU][3]
+                    x = (x_max + x_min) / 2
+                    y_min = boxes[RU][0]
+                    y_max = boxes[LD][2]
+                    y = (y_max + y_min) / 2
+                    mid = (x, y)
+        return mid
