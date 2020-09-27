@@ -17,7 +17,7 @@ if __name__ == '__main__':
     #pitchPID = PID(0.5, 1000, 2000, 1, 2, 3)
     #pitchPID = PID(0.5, 1000, 2000, 1, 2, 3)
     #throttlePID = PID(0.5, 1000, 2000, 7, 8, 9, start_from_min=True)
-    i =0
+    i = 0
     try:
         while True:
             i +=1

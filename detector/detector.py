@@ -77,7 +77,8 @@ class Detector:
                 if Values.SHOW_IMAGES:
                     cv2.imshow("View", frame)
                     cv2.waitKey(1)
-        mid = self.check_detections(good_boxes, good_classes, good_scores)
+        self.frame = frame
+        mid, ratio = self.check_detections(good_boxes, good_classes, good_scores)
         if mid is None:
             return None
         else:
@@ -100,6 +101,8 @@ class Detector:
         corners = 0
         Corners_score = 0
         mid = None
+        width = None
+        height = None
 
         for i in range(len(scores)):
             if classes[i] == Constants.LD:
@@ -135,25 +138,23 @@ class Detector:
         if RU_score != 0:
             Corners_score += RU_score
             corners += 1
-
-        Corners_score /= corners
+        if corners != 0:
+            Corners_score /= corners
 
         """Wszystkie możliwosci katow"""
 
         if Gate_score == 0 and Corners_score == 0:
-            return None
+            return None, None
 
-
-            return mid
-
-        if Gate_score >= Corners_score or (Gate_score != 0 and corners == 1):
+        if (Gate_score >= Corners_score or (Gate_score != 0 and corners == 1)):
             print("Gate")
             max_y = boxes[Gate][2]
             min_y = boxes[Gate][0]
             max_x = boxes[Gate][3]
             min_x = boxes[Gate][1]
-            gate_mid = [min_x + (max_x - min_x) / 2, min_y + (max_y - min_y) / 2]
-            mid = gate_mid
+            mid = [min_x + (max_x - min_x) / 2, min_y + (max_y - min_y) / 2]
+            width = max_x - min_x
+            height = max_y - min_y
 
         elif Gate_score == 0 and corners == 1:
             if LU != -1:
@@ -164,6 +165,7 @@ class Detector:
                 mid = (boxes[RD][1], boxes[RD][0])
             elif RU != -1:
                 mid = (boxes[RU][1], boxes[RU][2])
+            return mid, 1
 
         else:
             print("Corners")
@@ -172,39 +174,50 @@ class Detector:
                           (boxes[RD][3], boxes[RD][2])]
                 corner_mid = np.mean(points, axis=0)
                 mid = corner_mid
+                width = (boxes[RU][3] + boxes[RD][3]) / 2 - (boxes[LU][1] + boxes[LD][1]) / 2
+                height = (boxes[LD][2] + boxes[RD][2]) / 2 - (boxes[RU][0] + boxes[LU][0]) / 2
             elif corners == 3:
                 if LD == -1:
-                    y_max = (boxes[LU][0] + boxes[RU][0]) / 2
-                    y_min = boxes[RD][2]
+                    y_min = (boxes[LU][0] + boxes[RU][0]) / 2
+                    y_max = boxes[RD][2]
                     y = (y_max + y_min) / 2
                     x_max = (boxes[RU][3] + boxes[RD][3]) / 2
                     x_min = boxes[LU][1]
                     x = (x_max + x_min) / 2
                     mid = (x, y)
+                    width = x_max - x_min
+                    height = y_max - y_min
                 elif LU == -1:
-                    y_max = boxes[RU][0]
-                    y_min = (boxes[LD][2] + boxes[RD][2]) / 2
+                    y_min = boxes[RU][0]
+                    y_max = (boxes[LD][2] + boxes[RD][2]) / 2
                     y = (y_max + y_min) / 2
                     x_max = (boxes[RU][3] + boxes[RD][3]) / 2
                     x_min = boxes[LD][1]
                     x = (x_max + x_min) / 2
                     mid = (x, y)
+                    width = x_max - x_min
+                    height = y_max - y_min
+
                 elif RU == -1:
-                    y_max = boxes[LU][0]
-                    y_min = (boxes[LD][2] + boxes[RD][2]) / 2
+                    y_min = boxes[LU][0]
+                    y_max = (boxes[LD][2] + boxes[RD][2]) / 2
                     y = (y_max + y_min) / 2
                     x_max = boxes[RD][3]
                     x_min = (boxes[LD][1] + boxes[LU][1]) / 2
                     x = (x_max + x_min) / 2
                     mid = (x, y)
+                    width = x_max - x_min
+                    height = y_max - y_min
                 elif RD == -1:
-                    y_max = (boxes[LU][0] + boxes[RU][0]) / 2
-                    y_min = boxes[LD][2]
+                    y_min = (boxes[LU][0] + boxes[RU][0]) / 2
+                    y_max = boxes[LD][2]
                     y = (y_max + y_min) / 2
                     x_max = boxes[RU][3]
                     x_min = (boxes[LD][1] + boxes[LU][1]) / 2
                     x = (x_max + x_min) / 2
                     mid = (x, y)
+                    width = x_max - x_min
+                    height = y_max - y_min
             elif corners == 2:
                 if LD == -1 and LU == -1:
                     y_min = boxes[RU][0]
@@ -213,6 +226,8 @@ class Detector:
                     x = ((boxes[RU][3] + boxes[RD][3]) / 2) - (
                                 y_max - y_min) / 2 * Values.CAMERA_HEIGHT / Values.CAMERA_WIDTH
                     mid = (x, y)
+                    width = (y_max - y_min) * Values.CAMERA_HEIGHT / Values.CAMERA_WIDTH
+                    height = y_max - y_min
                 elif RD == -1 and RU == -1:
                     y_min = boxes[LU][0]
                     y_max = boxes[LD][2]
@@ -220,6 +235,8 @@ class Detector:
                     x = ((boxes[LU][1] + boxes[LD][1]) / 2) + (
                                 y_max - y_min) / 2 * Values.CAMERA_HEIGHT / Values.CAMERA_WIDTH
                     mid = (x, y)
+                    width = (y_max - y_min) * Values.CAMERA_HEIGHT / Values.CAMERA_WIDTH
+                    height = y_max - y_min
                 elif LD == -1 and RD == -1:
                     x_min = boxes[LU][1]
                     x_max = boxes[RU][3]
@@ -227,6 +244,8 @@ class Detector:
                     y = ((boxes[LU][0] + boxes[RU][0]) / 2) + (
                                 x_max - x_min) / 2 / Values.CAMERA_HEIGHT * Values.CAMERA_WIDTH
                     mid = (x, y)
+                    width = x_max - x_min
+                    height = (x_max - x_min) * Values.CAMERA_WIDTH / Values.CAMERA_HEIGHT
                 elif LU == -1 and RU == -1:
                     x_min = boxes[LD][1]
                     x_max = boxes[RD][3]
@@ -234,6 +253,8 @@ class Detector:
                     y = ((boxes[LD][2] + boxes[RD][2]) / 2) - (
                                 x_max - x_min) / 2 / Values.CAMERA_HEIGHT * Values.CAMERA_WIDTH
                     mid = (x, y)
+                    width = x_max - x_min
+                    height = (x_max - x_min) / Values.CAMERA_HEIGHT * Values.CAMERA_WIDTH
                 elif LD == -1 and RU == -1:
                     x_min = boxes[LU][1]
                     x_max = boxes[RD][3]
@@ -242,6 +263,8 @@ class Detector:
                     y_max = boxes[RD][2]
                     y = (y_max + y_min) / 2
                     mid = (x, y)
+                    width = x_max - x_min
+                    height = y_max - y_min
                 elif LU == -1 and RD == -1:
                     x_min = boxes[LD][1]
                     x_max = boxes[RU][3]
@@ -250,4 +273,9 @@ class Detector:
                     y_max = boxes[LD][2]
                     y = (y_max + y_min) / 2
                     mid = (x, y)
-        return mid
+                    width = x_max - x_min
+                    height = y_max - y_min
+
+        sides_ratio = height / width / Values.CAMERA_WIDTH * Values.CAMERA_HEIGHT
+        print(sides_ratio)
+        return mid, sides_ratio
