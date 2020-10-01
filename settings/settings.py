@@ -18,7 +18,7 @@ class Values:
     SEND_IMAGES_WIFI = False
     WINDOWS_GPU = False
     CAMERA = 0
-    CAMERA_WIDTH = 640
+    CAMERA_WIDTH = 720
     CAMERA_HEIGHT = 480
     STREAM_PORT = 5555
     FPS = 122
@@ -27,6 +27,24 @@ class Values:
 class PIDSettings:
     PID_REPEAT_TIME = 1
     PID_I_MAX = 500
+
+    # used in detector to set default values
+    THROTTLE_SETPOINT = 0.5
+    THROTTLE_P = 1
+    THROTTLE_I = 1
+    THROTTLE_D = 1
+
+    ROLL_SETPOINT = 0.5
+    ROLL_P = 1
+    ROLL_I = 1
+    ROLL_D = 1
+
+    YAW_SETPOINT = 1
+    YAW_P = 1
+    YAW_I = 1
+    YAW_D = 1
+
+
 
 class Constants:
     RD = 3

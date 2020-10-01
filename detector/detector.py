@@ -1,4 +1,4 @@
-from settings.settings import Values, Constants
+from settings.settings import Values, Constants, PIDSettings
 import importlib.util
 import cv2
 import numpy as np
@@ -80,10 +80,13 @@ class Detector:
         self.frame = frame
         mid, ratio = self.check_detections(good_boxes, good_classes, good_scores)
         if mid is None:
-            return None
-        else:
-            cv2.circle(frame, (int(mid[0] * width), int(mid[1] * height)), 15, (0, 0, 255), 2)
-            return mid
+            mid = (PIDSettings.THROTTLE_SETPOINT, PIDSettings.ROLL_SETPOINT)
+        if ratio is None:
+            ratio = PIDSettings.YAW_SETPOINT
+
+        cv2.circle(frame, (int(mid[0] * width), int(mid[1] * height)), 15, (0, 0, 255), 2)
+        return mid, ratio
+
 
 
 
@@ -276,6 +279,13 @@ class Detector:
                     width = x_max - x_min
                     height = y_max - y_min
 
-        sides_ratio = height / width / Values.CAMERA_WIDTH * Values.CAMERA_HEIGHT
-        print(sides_ratio)
+        height *= Values.CAMERA_HEIGHT
+        width *= Values.CAMERA_WIDTH
+        sides_ratio = height - width
+
+        if height >= width:
+            sides_ratio /= height
+        else:
+            sides_ratio /= width
+
         return mid, sides_ratio
