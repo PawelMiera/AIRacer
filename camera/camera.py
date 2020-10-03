@@ -6,8 +6,8 @@ import time
 class Camera:
     def __init__(self):
         self.camera = cv2.VideoCapture(Values.CAMERA)
-        self.camera.set(3, Values.CAMERA_WIDTH)
-        self.camera.set(4, Values.CAMERA_HEIGHT)
+        #self.camera.set(3, Values.CAMERA_WIDTH)
+        #self.camera.set(4, Values.CAMERA_HEIGHT)
         if Values.PRINT_FPS:
             self.count = 0
             self.start = time.time()

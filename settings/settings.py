@@ -1,13 +1,8 @@
 import os
 
 
-class Modes:
-    DETECTOR = 0
-    CLASSIFIER = 1
-
-
 class Values:
-    MODE = Modes.DETECTOR
+
     MODEL_PATH = os.path.join('models', 'AIRacer.tflite')
     LABEL_PATH = os.path.join('models', 'labelmap.txt')
     DETECTION_THRESHOLD = 0.61
@@ -23,27 +18,28 @@ class Values:
     STREAM_PORT = 5555
     FPS = 122
 
+    PPM_PIN = 4
+
 
 class PIDSettings:
-    PID_REPEAT_TIME = 1
+    PID_PPM_UPDATE_TIME = 1
     PID_I_MAX = 500
 
     # used in detector to set default values
-    THROTTLE_SETPOINT = 0.5
+    THROTTLE_SETPOINT = 0
     THROTTLE_P = 1
     THROTTLE_I = 1
     THROTTLE_D = 1
 
-    ROLL_SETPOINT = 0.5
+    ROLL_SETPOINT = 0
     ROLL_P = 1
     ROLL_I = 1
     ROLL_D = 1
 
-    YAW_SETPOINT = 1
+    YAW_SETPOINT = 0
     YAW_P = 1
     YAW_I = 1
     YAW_D = 1
-
 
 
 class Constants:

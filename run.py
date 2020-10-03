@@ -5,15 +5,16 @@ from imageStream.imageStream import ImageStream
 from ImageWindow.ImageWindow import ImageWindow
 from PIDs.PIDs import PIDs
 import cv2
-
+import time
 
 
 if __name__ == '__main__':
     detector = Detector(Values.MODEL_PATH, Values.LABEL_PATH)
     camera = Camera()
-    pids = PIDs()       #pewnie beda zle wartosci na wyjsciu do dopracowania
-    imageWindow = ImageWindow(pids)
+    time.sleep(1)
+    imageWindow = ImageWindow()
     imageWindow.show()
+    pids = PIDs(imageWindow)       #pewnie beda zle wartosci na wyjsciu do dopracowania
 
     if Values.SEND_IMAGES_WIFI:
         imageStream = ImageStream()
@@ -21,22 +22,22 @@ if __name__ == '__main__':
     i = 0
     try:
         while True:
-            i += 1
-            name = "images/" + str(i)+".JPG"
+            #i += 1
+            name = "images/" + "4.JPG"
             frame = cv2.imread(name)
             frame = cv2.resize(frame, (640, 480))
             #frame = camera.get_frame()
             mid, ratio = detector.detect(frame)         # mid liczony od: lewy gorny rog
 
             pids.update(mid, ratio)
-
-
             imageWindow.update_image(frame)
-            cv2.waitKey(10000)
+
+
+
             if Values.SEND_IMAGES_WIFI:
                 imageStream.send_image(frame)
 
-            brk = cv2.waitKey(1) & 0xFF
+            brk = cv2.waitKey(3) & 0xFF
             if brk == ord('q') or brk == 27:
                 break
     except ValueError:

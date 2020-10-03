@@ -77,7 +77,6 @@ class Detector:
                 if Values.SHOW_IMAGES:
                     cv2.imshow("View", frame)
                     cv2.waitKey(1)
-        self.frame = frame
         mid, ratio = self.check_detections(good_boxes, good_classes, good_scores)
         if mid is None:
             mid = (PIDSettings.THROTTLE_SETPOINT, PIDSettings.ROLL_SETPOINT)
@@ -86,9 +85,6 @@ class Detector:
 
         cv2.circle(frame, (int(mid[0] * width), int(mid[1] * height)), 15, (0, 0, 255), 2)
         return mid, ratio
-
-
-
 
     def check_detections(self, boxes, classes, scores):
         LD = -1
@@ -149,8 +145,7 @@ class Detector:
         if Gate_score == 0 and Corners_score == 0:
             return None, None
 
-        if (Gate_score >= Corners_score or (Gate_score != 0 and corners == 1)):
-            print("Gate")
+        if Gate_score >= Corners_score or (Gate_score != 0 and corners == 1):
             max_y = boxes[Gate][2]
             min_y = boxes[Gate][0]
             max_x = boxes[Gate][3]
@@ -171,7 +166,6 @@ class Detector:
             return mid, 1
 
         else:
-            print("Corners")
             if corners == 4:
                 points = [(boxes[LU][1], boxes[LU][0]), (boxes[LD][1], boxes[LD][2]), (boxes[RU][3], boxes[RU][0]),
                           (boxes[RD][3], boxes[RD][2])]

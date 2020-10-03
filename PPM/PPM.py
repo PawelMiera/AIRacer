@@ -1,49 +1,11 @@
 import time
 import PPM
 import pigpio
-
-class MyPPM:
-    def __init__(self):
-
-
-
-if __name__ == "__main__":
-
-
-    pi = pigpio.pi()
-
-    if not pi.connected:
-        exit(0)
-
-    pi.wave_tx_stop()  # Start with a clean slate.
-
-    ppm = PPM.X(pi, 6, frame_ms=20)
-
-    updates = 0
-    start = time.time()
-    for chan in range(8):
-        for pw in range(1000, 2000, 5):
-            ppm.update_channel(chan, pw)
-            updates += 1
-    end = time.time()
-    secs = end - start
-    print("{} updates in {:.1f} seconds ({}/s)".format(updates, secs, int(updates / secs)))
-
-    ppm.update_channels([1000, 2000, 1000, 2000, 1000, 2000, 1000, 2000])
-
-    time.sleep(2)
-
-    ppm.cancel()
-
-    pi.stop()
-
-
-"""import time
-import pigpio
+from settings.settings import Values
 
 
 class X:
-    GAP = 100
+    GAP = 300
     WAVES = 3
 
     def __init__(self, pi, gpio, channels=8, frame_ms=27):
@@ -81,10 +43,12 @@ class X:
         wf = []
         micros = 0
         for i in self._widths:
-            wf.append(pigpio.pulse(0, 1 << self.gpio, self.GAP))
-            wf.append(pigpio.pulse(1 << self.gpio, 0, i))
-            micros += (i + self.GAP)
+            wf.append(pigpio.pulse(1 << self.gpio, 0, self.GAP))
+            wf.append(pigpio.pulse(0, 1 << self.gpio, i - self.GAP))
+            micros += i
         # off for the remaining frame period
+        wf.append(pigpio.pulse(1 << self.gpio, 0, self.GAP))
+        micros += self.GAP
         wf.append(pigpio.pulse(0, 1 << self.gpio, self._frame_us - micros))
 
         self.pi.wave_add_generic(wf)
@@ -119,4 +83,25 @@ class X:
         for i in self._wid:
             if i is not None:
                 self.pi.wave_delete(i)
-"""
+
+
+class PPM:
+    def __init__(self):
+        self.pi = pigpio.pi()
+
+        if not self.pi.connected:
+            print("Error PPM not working!")
+
+        self.pi.wave_tx_stop()  # Start with a clean slate.
+
+        self.ppm = PPM.X(self.pi, 4, frame_ms=20)
+        self.ppm.update_channels([1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000])
+
+    def update_ppm_channels(self, values):
+        start = time.time()
+        self.ppm.update_channels(values)
+        print("ppm took", time.time()-start, " sec")
+
+    def stop(self):
+        self.ppm.cancel()
+        self.pi.stop()
