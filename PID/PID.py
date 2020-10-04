@@ -23,6 +23,12 @@ class PID:
     def update(self, v):
         self.value = v
 
+    def reset(self):
+        self.value = self.set_point
+        self.output_ppm = self.start_output_ppm
+        self.last_e = None
+        self.sum_e = 0
+
     def calculate(self):
         if self.value is not None:
             e = self.set_point - self.value

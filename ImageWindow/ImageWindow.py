@@ -1,5 +1,4 @@
 import cv2
-
 from PyQt5.QtCore import pyqtSlot
 from PyQt5.QtGui import QImage, QPixmap
 from PyQt5.QtWidgets import QMainWindow, QWidget, QPushButton, QVBoxLayout, QApplication, QLabel, QLineEdit, QGridLayout
@@ -82,8 +81,8 @@ class ImageWindow(QMainWindow):
 
         self.setCentralWidget(self.central_widget)
         self.update_image(cv2.imread("images/start.jpg"))
-
         self.pid_values_changed = False
+        self.pids = None
 
     def update_image(self, frame):
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
@@ -99,31 +98,60 @@ class ImageWindow(QMainWindow):
         lines.append(self.yaw_D.text()+','+self.roll_D.text()+','+self.throttle_D.text()+'\n')
         with open(os.path.join("settings", "pidValues.csv"), 'w') as fd:
             fd.writelines(lines)
-        self.pid_values_changed = True
+        if self.pids is not None:
+            self.pids.yawPID.Kp = float(self.yaw_P.text())
+            self.pids.yawPID.Ki = float(self.yaw_I.text())
+            self.pids.yawPID.Kd = float(self.yaw_D.text())
+            self.pids.rollPID.Kd = float(self.roll_P.text())
+            self.pids.rollPID.Ki = float(self.roll_I.text())
+            self.pids.rollPID.Kd = float(self.roll_D.text())
+            self.pids.throttlePID.Kp = float(self.roll_P.text())
+            self.pids.throttlePID.Ki = float(self.roll_I.text())
+            self.pids.throttlePID.Kd = float(self.roll_D.text())
 
     @pyqtSlot()
     def on_click_start(self):
-        print("click1")
+        self.start()
 
     @pyqtSlot()
     def on_click_stop(self):
-        print("click2")
+        self.stop()
+
+    def start(self):
+        if self.pids is not None:
+            self.pids.update_ppm = True
+            self.pids.update_pids = True
+
+    def stop(self):
+        if self.pids is not None:
+            self.pids.update_ppm = False
+            self.pids.update_pids = False
 
     def update_ppm_values(self, yaw, roll, throttle):
         self.throttle_ppm_label.setText(str(round(throttle, 1)))
         self.yaw_ppm_label.setText(str(round(yaw, 1)))
         self.roll_ppm_label.setText(str(round(roll, 1)))
 
-    def show_pid_values(self, yaw_P, yaw_I, yaw_D, roll_P, roll_I, roll_D, throttle_P, throttle_I, throttle_D):
-        self.yaw_P.setText(str(yaw_P))
-        self.yaw_I.setText(str(yaw_I))
-        self.yaw_D.setText(str(yaw_D))
-        self.roll_P.setText(str(roll_P))
-        self.roll_I.setText(str(roll_I))
-        self.roll_D.setText(str(roll_D))
-        self.throttle_P.setText(str(throttle_P))
-        self.throttle_I.setText(str(throttle_I))
-        self.throttle_D.setText(str(throttle_D))
+    def keyPressEvent(self, event):
+        if event.key() == 16777220:
+            self.start()
+        if event.key() == 16777216:
+            self.stop()
+
+    def show_pid_values(self):
+        if self.pids is not None:
+            self.yaw_P.setText(str(self.pids.yawPID.Kp))
+            self.yaw_I.setText(str(self.pids.yawPID.Ki))
+            self.yaw_D.setText(str(self.pids.yawPID.Kd))
+            self.roll_P.setText(str(self.pids.rollPID.Kp))
+            self.roll_I.setText(str(self.pids.rollPID.Ki))
+            self.roll_D.setText(str(self.pids.rollPID.Kd))
+            self.throttle_P.setText(str(self.pids.throttlePID.Kp))
+            self.throttle_I.setText(str(self.pids.throttlePID.Ki))
+            self.throttle_D.setText(str(self.pids.throttlePID.Kd))
+
+    def get_pids_object(self, my_pids):
+        self.pids = my_pids
 
     def close(self):
         self.app.exit(self.app.exec_())
