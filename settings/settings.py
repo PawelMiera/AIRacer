@@ -12,6 +12,8 @@ class Values:
     PRINT_FPS = True
     SEND_IMAGES_WIFI = False
     WINDOWS_GPU = False
+
+    REMOTE_CONTROL = True
     CAMERA = 0
     CAMERA_WIDTH = 720
     CAMERA_HEIGHT = 480
@@ -19,6 +21,9 @@ class Values:
     FPS = 122
 
     PPM_PIN = 4
+
+    TCP_IP = "localhost"
+    TCP_PORT = 500
 
 
 class PIDSettings:
