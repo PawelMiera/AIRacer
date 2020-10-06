@@ -79,10 +79,9 @@ class Detector:
                     cv2.waitKey(1)
         mid, ratio = self.check_detections(good_boxes, good_classes, good_scores)
         if mid is None:
-            mid = (PIDSettings.THROTTLE_SETPOINT, PIDSettings.ROLL_SETPOINT)
+            mid = [PIDSettings.THROTTLE_SETPOINT, PIDSettings.ROLL_SETPOINT]
         if ratio is None:
             ratio = PIDSettings.YAW_SETPOINT
-
         cv2.circle(frame, (int(mid[0] * width), int(mid[1] * height)), 15, (0, 0, 255), 2)
         return mid, ratio
 
@@ -181,7 +180,7 @@ class Detector:
                     x_max = (boxes[RU][3] + boxes[RD][3]) / 2
                     x_min = boxes[LU][1]
                     x = (x_max + x_min) / 2
-                    mid = (x, y)
+                    mid = [x, y]
                     width = x_max - x_min
                     height = y_max - y_min
                 elif LU == -1:
@@ -191,7 +190,7 @@ class Detector:
                     x_max = (boxes[RU][3] + boxes[RD][3]) / 2
                     x_min = boxes[LD][1]
                     x = (x_max + x_min) / 2
-                    mid = (x, y)
+                    mid = [x, y]
                     width = x_max - x_min
                     height = y_max - y_min
 
@@ -202,7 +201,7 @@ class Detector:
                     x_max = boxes[RD][3]
                     x_min = (boxes[LD][1] + boxes[LU][1]) / 2
                     x = (x_max + x_min) / 2
-                    mid = (x, y)
+                    mid = [x, y]
                     width = x_max - x_min
                     height = y_max - y_min
                 elif RD == -1:
@@ -212,7 +211,7 @@ class Detector:
                     x_max = boxes[RU][3]
                     x_min = (boxes[LD][1] + boxes[LU][1]) / 2
                     x = (x_max + x_min) / 2
-                    mid = (x, y)
+                    mid = [x, y]
                     width = x_max - x_min
                     height = y_max - y_min
             elif corners == 2:
@@ -222,7 +221,7 @@ class Detector:
                     y = (y_max + y_min) / 2
                     x = ((boxes[RU][3] + boxes[RD][3]) / 2) - (
                                 y_max - y_min) / 2 * Values.CAMERA_HEIGHT / Values.CAMERA_WIDTH
-                    mid = (x, y)
+                    mid = [x, y]
                     width = (y_max - y_min) * Values.CAMERA_HEIGHT / Values.CAMERA_WIDTH
                     height = y_max - y_min
                 elif RD == -1 and RU == -1:
@@ -231,7 +230,7 @@ class Detector:
                     y = (y_max + y_min) / 2
                     x = ((boxes[LU][1] + boxes[LD][1]) / 2) + (
                                 y_max - y_min) / 2 * Values.CAMERA_HEIGHT / Values.CAMERA_WIDTH
-                    mid = (x, y)
+                    mid = [x, y]
                     width = (y_max - y_min) * Values.CAMERA_HEIGHT / Values.CAMERA_WIDTH
                     height = y_max - y_min
                 elif LD == -1 and RD == -1:
@@ -240,7 +239,7 @@ class Detector:
                     x = (x_max + x_min) / 2
                     y = ((boxes[LU][0] + boxes[RU][0]) / 2) + (
                                 x_max - x_min) / 2 / Values.CAMERA_HEIGHT * Values.CAMERA_WIDTH
-                    mid = (x, y)
+                    mid = [x, y]
                     width = x_max - x_min
                     height = (x_max - x_min) * Values.CAMERA_WIDTH / Values.CAMERA_HEIGHT
                 elif LU == -1 and RU == -1:
@@ -249,7 +248,7 @@ class Detector:
                     x = (x_max + x_min) / 2
                     y = ((boxes[LD][2] + boxes[RD][2]) / 2) - (
                                 x_max - x_min) / 2 / Values.CAMERA_HEIGHT * Values.CAMERA_WIDTH
-                    mid = (x, y)
+                    mid = [x, y]
                     width = x_max - x_min
                     height = (x_max - x_min) / Values.CAMERA_HEIGHT * Values.CAMERA_WIDTH
                 elif LD == -1 and RU == -1:
@@ -259,7 +258,7 @@ class Detector:
                     y_min = boxes[LU][0]
                     y_max = boxes[RD][2]
                     y = (y_max + y_min) / 2
-                    mid = (x, y)
+                    mid = [x, y]
                     width = x_max - x_min
                     height = y_max - y_min
                 elif LU == -1 and RD == -1:
@@ -269,7 +268,7 @@ class Detector:
                     y_min = boxes[RU][0]
                     y_max = boxes[LD][2]
                     y = (y_max + y_min) / 2
-                    mid = (x, y)
+                    mid = [x, y]
                     width = x_max - x_min
                     height = y_max - y_min
 

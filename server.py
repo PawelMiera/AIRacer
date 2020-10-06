@@ -12,16 +12,24 @@ from settings.settings import Values
 
 tcp_server = TCPserver(Values.TCP_PORT)
 imageWindow = remoteImageWindow(tcp_server)
+imageWindow.show()
+
 
 def handle_receive():
     try:
+        print("Started TCP server!")
         while 1:
             newSocket, address = tcp_server.sock.accept()
             tcp_server.socket = newSocket
             while 1:
                 try:
-                    print("receiving")
-                    receivedData = newSocket.recv(1024)  # receive data from server
+                    receivedData = newSocket.recv(1024).decode()  # receive data from server
+                    if receivedData[0] == "t":
+                        imageWindow.update_ppm_values(None, None, receivedData[1:])
+                    elif receivedData[0] == "y":
+                        imageWindow.update_ppm_values(receivedData[1:], None, None)
+                    elif receivedData[0] == "r":
+                        imageWindow.update_ppm_values(None, receivedData[1:], None)
                 except ConnectionResetError:
                     print("Lost connection!")
             newSocket.close()
@@ -37,8 +45,6 @@ footage_socket = context.socket(zmq.SUB)
 footage_socket.bind('tcp://127.0.0.1:5555')
 footage_socket.setsockopt_string(zmq.SUBSCRIBE, np.unicode(''))
 
-
-
 start = time.time()
 ind = 0
 
@@ -46,11 +52,11 @@ while True:
 
     try:
         ind += 1
-        frame = footage_socket.recv_string()
-        img = base64.b64decode(frame)
+        received_string = footage_socket.recv_string()
+        img = base64.b64decode(received_string)
         npimg = np.frombuffer(img, dtype=np.uint8)
-        source = cv2.imdecode(npimg, 1)
-        imageWindow.update_image(source)
+        frame = cv2.imdecode(npimg, 1)
+        imageWindow.update_image(frame)
         cv2.waitKey(1)
         if time.time() - start > 1:
             start = time.time()

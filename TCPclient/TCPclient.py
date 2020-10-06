@@ -2,10 +2,11 @@ import threading, socket
 from settings.settings import Values
 from PIDs.PIDs import PIDs
 import time
-
+import os
 
 class TCPclient(threading.Thread):
-    def __init__(self, pids:PIDs):
+
+    def __init__(self, pids: PIDs):
         threading.Thread.__init__(self)
         self.pids = pids
         self.ip = Values.TCP_IP
@@ -25,38 +26,57 @@ class TCPclient(threading.Thread):
         t1.join()
         t2.join()
 
-
     def handle_receive(self):
         while True:
-            data = self.socket.recv(1024).decode()
-            print(data)
-            if data == "s":
-                self.pids.update_ppm = True
-                self.pids.update_pids = True
-            elif data == "x":
-                self.pids.update_ppm = False
-                self.pids.update_pids = False
-            elif data[0] == "u":
-                print("pid upd")
+            try:
+                data = self.socket.recv(1024).decode()
+                if data == "s":
+                    self.pids.update_ppm = True
+                    self.pids.update_pids = True
+                elif data == "x":
+                    self.pids.update_ppm = False
+                    self.pids.update_pids = False
+                elif data[0] == "p":
+                    with open(os.path.join("settings", "pidValues_remote.csv"), 'w') as fd:
+                        fd.write(data[1:])
+                    lines = data[1:].split("\n")
+                    values = []
+                    for l in lines:
+                        values.append(l.split(","))
+                    self.pids.yawPID.Kp = float(values[0][0])
+                    self.pids.yawPID.Ki = float(values[1][0])
+                    self.pids.yawPID.Kd = float(values[2][0])
 
+                    self.pids.rollPID.Kp = float(values[0][1])
+                    self.pids.rollPID.Ki = float(values[1][1])
+                    self.pids.rollPID.Kd = float(values[2][1])
 
+                    self.pids.throttlePID.Kp = float(values[0][2])
+                    self.pids.throttlePID.Ki = float(values[1][2])
+                    self.pids.throttlePID.Kd = float(values[2][2])
+            except:
+                self.pids.stop()
+                break
     def handle_send(self):
         while True:
-            if self.pids.yawPID.output_ppm != self.last_yaw_output:
-                self.socket.send(("y" + str(round(self.pids.yawPID.output_ppm, 1))).encode())
-                self.last_yaw_output = self.pids.yawPID.output_ppm
-                time.sleep(0.03)
+            try:
+                if self.pids.yawPID.output_ppm != self.last_yaw_output:
+                    self.socket.send(("y" + str(round(self.pids.yawPID.output_ppm, 1))).encode())
+                    self.last_yaw_output = self.pids.yawPID.output_ppm
+                    time.sleep(0.03)
 
-            if self.pids.rollPID.output_ppm != self.last_roll_output:
-                self.socket.send(("r" + str(round(self.pids.rollPID.output_ppm, 1))).encode())
-                self.last_roll_output = self.pids.rollPID.output_ppm
-                time.sleep(0.03)
+                if self.pids.rollPID.output_ppm != self.last_roll_output:
+                    self.socket.send(("r" + str(round(self.pids.rollPID.output_ppm, 1))).encode())
+                    self.last_roll_output = self.pids.rollPID.output_ppm
+                    time.sleep(0.03)
 
-            if self.pids.throttlePID.output_ppm != self.last_throttle_output:
-                self.socket.send(("t" + str(round(self.pids.throttlePID.output_ppm, 1))).encode())
-                self.last_throttle_output = self.pids.throttlePID.output_ppm
-                time.sleep(0.03)
-            time.sleep(0.05)
+                if self.pids.throttlePID.output_ppm != self.last_throttle_output:
+                    self.socket.send(("t" + str(round(self.pids.throttlePID.output_ppm, 1))).encode())
+                    self.last_throttle_output = self.pids.throttlePID.output_ppm
+                    time.sleep(0.03)
+                time.sleep(0.05)
+            except:
+                print("socket sending error")
 
     def close(self):
         self.socket.close()

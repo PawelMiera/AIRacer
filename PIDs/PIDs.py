@@ -126,6 +126,7 @@ class remotePIDs:
     def stop(self):
         self._timer.cancel()
         self.is_running = False
+        #reset ppm
 
     def send_ppm(self):
         if self.update_ppm:
@@ -157,7 +158,7 @@ class remotePIDs:
 
     def get_pid_values(self):
         values = []
-        with open(os.path.join("settings", "pidValues.csv"), 'r') as fd:
+        with open(os.path.join("settings", "pidValues_remote.csv"), 'r') as fd:
             reader = csv.reader(fd)
             for row in reader:
                 values.append(row)

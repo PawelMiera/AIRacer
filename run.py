@@ -31,11 +31,13 @@ if __name__ == '__main__':
     i = 0
     try:
         while True:
-            #i += 1
-            name = "images/" + "4.JPG"
-            frame = cv2.imread(name)
-            frame = cv2.resize(frame, (640, 480))
-            #frame = camera.get_frame()
+            i += 1
+            name = "images/" + str(i) + ".JPG"
+            #frame = cv2.imread(name)
+            #frame = cv2.resize(frame, (640, 480))
+            frame = camera.get_frame()
+            if frame is None:
+                continue
             mid, ratio = detector.detect(frame)         # mid liczony od: lewy gorny rog
 
             pids.update(mid, ratio)
@@ -44,14 +46,17 @@ if __name__ == '__main__':
                 imageWindow.update_image(frame)
 
             if Values.SEND_IMAGES_WIFI:
-                imageStream.send_image(frame)
+                imageStream.send_image(cv2.resize(frame, (200, 200)))
 
-            brk = cv2.waitKey(3) & 0xFF
+            brk = cv2.waitKey(1) & 0xFF
             if brk == ord('q') or brk == 27:
+                print("break")
                 break
     except ValueError:
         print("Some error accured")
     finally:
+        print("Closing")
         camera.close()
-        imageWindow.close()
+        if not Values.REMOTE_CONTROL:
+            imageWindow.close()
         pids.stop()

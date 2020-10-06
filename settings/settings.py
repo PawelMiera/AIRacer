@@ -10,7 +10,7 @@ class Values:
     USE_EDGE_TPU = False
     SHOW_IMAGES = False
     PRINT_FPS = True
-    SEND_IMAGES_WIFI = False
+    SEND_IMAGES_WIFI = True
     WINDOWS_GPU = False
 
     REMOTE_CONTROL = True
