@@ -2,8 +2,6 @@ from detector.detector import Detector
 from settings.settings import Values
 from camera.camera import Camera
 import cv2
-import time
-
 
 if __name__ == '__main__':
     detector = Detector(Values.MODEL_PATH, Values.LABEL_PATH)
@@ -27,14 +25,9 @@ if __name__ == '__main__':
     if Values.SEND_IMAGES_WIFI:
         from imageStream.imageStream import ImageStream
         imageStream = ImageStream()
-
-    i = 0
+    cv2.waitKey(1)
     try:
         while True:
-            i += 1
-            name = "images/" + str(i) + ".JPG"
-            #frame = cv2.imread(name)
-            #frame = cv2.resize(frame, (640, 480))
             frame = camera.get_frame()
             if frame is None:
                 continue

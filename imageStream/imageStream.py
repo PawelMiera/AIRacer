@@ -7,7 +7,7 @@ class ImageStream:
     def __init__(self):
         context = zmq.Context()
         self.footage_socket = context.socket(zmq.PUB)
-        self.footage_socket.connect('tcp://localhost:' + str(Values.STREAM_PORT))
+        self.footage_socket.connect('tcp://' + Values.REMOTE_IP + ':' + str(Values.IMAGE_STREAM_PORT))
 
     def send_image(self, frame):
         encoded, buffer = cv2.imencode('.jpg', frame)

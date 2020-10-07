@@ -1,13 +1,16 @@
+import csv
+import os
+import sys
+
 import cv2
 from PyQt5.QtCore import pyqtSlot
 from PyQt5.QtGui import QImage, QPixmap
 from PyQt5.QtWidgets import QMainWindow, QWidget, QPushButton, QVBoxLayout, QApplication, QLabel, QLineEdit, QGridLayout
-import os, csv
 
 
 class ImageWindow(QMainWindow):
     def __init__(self):
-        self.app = QApplication([])
+        self.app = QApplication(sys.argv)
         super().__init__()
         self.central_widget = QWidget()
         self.setWindowTitle("AI Racer")
@@ -153,12 +156,12 @@ class ImageWindow(QMainWindow):
         self.pids = my_pids
 
     def close(self):
-        self.app.exit(self.app.exec_())
+        sys.exit(self.app.exec_())
 
 
 class remoteImageWindow(QMainWindow):
     def __init__(self, tcp_server):
-        self.app = QApplication([])
+        self.app = QApplication(sys.argv)
         super().__init__()
         self.tcp_server = tcp_server
         self.central_widget = QWidget()
@@ -234,6 +237,8 @@ class remoteImageWindow(QMainWindow):
 
         self.setCentralWidget(self.central_widget)
         self.update_image(cv2.imread("images/start.jpg"))
+        cv2.waitKey(1)
+
 
     def update_image(self, frame):
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
@@ -284,11 +289,11 @@ class remoteImageWindow(QMainWindow):
 
     def get_pid_values(self):
         values = []
-        with open(os.path.join("settings", "pidValues.csv"), 'r') as fd:
+        with open(os.path.join("settings", "pidValues_remote.csv"), 'r') as fd:
             reader = csv.reader(fd)
             for row in reader:
                 values.append(row)
         return values
 
     def close(self):
-        self.app.exit(self.app.exec_())
+        sys.exit(self.app.exec_())

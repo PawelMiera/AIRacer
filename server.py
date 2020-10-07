@@ -13,13 +13,14 @@ from settings.settings import Values
 tcp_server = TCPserver(Values.TCP_PORT)
 imageWindow = remoteImageWindow(tcp_server)
 imageWindow.show()
-
+cv2.waitKey(1)
 
 def handle_receive():
     try:
         print("Started TCP server!")
         while 1:
             newSocket, address = tcp_server.sock.accept()
+            print("New client connected!")
             tcp_server.socket = newSocket
             while 1:
                 try:
@@ -40,6 +41,7 @@ def handle_receive():
 t1 = threading.Thread(target=handle_receive)
 t1.start()
 
+
 context = zmq.Context()
 footage_socket = context.socket(zmq.SUB)
 footage_socket.bind('tcp://127.0.0.1:5555')
@@ -49,7 +51,6 @@ start = time.time()
 ind = 0
 
 while True:
-
     try:
         ind += 1
         received_string = footage_socket.recv_string()

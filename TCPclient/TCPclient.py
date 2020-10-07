@@ -9,7 +9,7 @@ class TCPclient(threading.Thread):
     def __init__(self, pids: PIDs):
         threading.Thread.__init__(self)
         self.pids = pids
-        self.ip = Values.TCP_IP
+        self.ip = Values.REMOTE_IP
         self.port = Values.TCP_PORT
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)

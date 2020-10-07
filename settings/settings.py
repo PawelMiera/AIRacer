@@ -17,13 +17,13 @@ class Values:
     CAMERA = 0
     CAMERA_WIDTH = 720
     CAMERA_HEIGHT = 480
-    STREAM_PORT = 5555
     FPS = 122
 
     PPM_PIN = 4
 
-    TCP_IP = "localhost"
-    TCP_PORT = 500
+    REMOTE_IP = "localhost"
+    TCP_PORT = 6969
+    IMAGE_STREAM_PORT = 5555
 
 
 class PIDSettings:
