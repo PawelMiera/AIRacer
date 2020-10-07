@@ -39,6 +39,8 @@ class Detector:
         self.width = self.input_details[0]['shape'][2]
         self.img_ind = 0
         print("Model init success!")
+        
+        self.frame = cv2.imread("images/start.jpg")
 
     def detect(self, frame):
         image = cv2.resize(frame, (self.width, self.height))
@@ -83,6 +85,7 @@ class Detector:
         if ratio is None:
             ratio = PIDSettings.YAW_SETPOINT
         cv2.circle(frame, (int(mid[0] * width), int(mid[1] * height)), 15, (0, 0, 255), 2)
+        self.frame = frame
         return mid, ratio
 
     def check_detections(self, boxes, classes, scores):

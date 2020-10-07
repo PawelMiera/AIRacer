@@ -11,8 +11,8 @@ from TCPserver.TCPserver import TCPserver
 from settings.settings import Values
 
 tcp_server = TCPserver(Values.TCP_PORT)
-imageWindow = remoteImageWindow(tcp_server)
-imageWindow.show()
+#imageWindow = remoteImageWindow(tcp_server)
+#imageWindow.show()
 cv2.waitKey(1)
 
 def handle_receive():
@@ -57,7 +57,8 @@ while True:
         img = base64.b64decode(received_string)
         npimg = np.frombuffer(img, dtype=np.uint8)
         frame = cv2.imdecode(npimg, 1)
-        imageWindow.update_image(frame)
+        cv2.imshow("axxd", frame)
+        #imageWindow.update_image(frame)
         cv2.waitKey(1)
         if time.time() - start > 1:
             start = time.time()

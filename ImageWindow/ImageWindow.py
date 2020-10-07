@@ -1,20 +1,40 @@
-import csv
-import os
-import sys
-
 import cv2
-from PyQt5.QtCore import pyqtSlot
-from PyQt5.QtGui import QImage, QPixmap
-from PyQt5.QtWidgets import QMainWindow, QWidget, QPushButton, QVBoxLayout, QApplication, QLabel, QLineEdit, QGridLayout
+import sys
+import os
+
+from PyQt5.QtCore import QTimer, QPoint, pyqtSlot
+from PyQt5.QtGui import QFont, QPainter, QImage
+from PyQt5.QtWidgets import QApplication, QMainWindow, QLabel
+from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLineEdit, QGridLayout, QPushButton
+
+from settings.settings import Values
+
+
+class ImageWidget(QWidget):
+    def __init__(self, parent=None):
+        super(ImageWidget, self).__init__(parent)
+        self.image = None
+
+    def setImage(self, image):
+        self.image = image
+        self.setMinimumSize(image.size())
+        self.update()
+
+    def paintEvent(self, event):
+        qp = QPainter()
+        qp.begin(self)
+        if self.image:
+            qp.drawImage(QPoint(0, 0), self.image)
+        qp.end()
 
 
 class ImageWindow(QMainWindow):
-    def __init__(self):
-        self.app = QApplication(sys.argv)
-        super().__init__()
-        self.central_widget = QWidget()
-        self.setWindowTitle("AI Racer")
 
+    def __init__(self, detector):
+        super().__init__()
+        self.detector = detector
+        self.central_widget = QWidget(self)
+        self.setWindowTitle("AI Racer")
         P_label = QLabel("P")
         I_label = QLabel("I")
         D_label = QLabel("D")
@@ -38,7 +58,7 @@ class ImageWindow(QMainWindow):
         self.throttle_D = QLineEdit("8")
 
         self.layout = QGridLayout()
-        self.layout1 = QVBoxLayout()
+        self.displays = QVBoxLayout()
 
         self.layout.addWidget(self.yaw_ppm_label, 0, 1)
         self.layout.addWidget(self.roll_ppm_label, 0, 2)
@@ -47,6 +67,7 @@ class ImageWindow(QMainWindow):
         self.layout.addWidget(P_label, 2, 0)
         self.layout.addWidget(I_label, 3, 0)
         self.layout.addWidget(D_label, 4, 0)
+        self.disp = ImageWidget(self)
 
         self.layout.addWidget(self.yaw, 1, 1)
         self.layout.addWidget(self.yaw_P, 2, 1)
@@ -75,29 +96,21 @@ class ImageWindow(QMainWindow):
         self.stop_button.clicked.connect(self.on_click_stop)
         self.layout.addWidget(self.stop_button, 5, 3)
 
-        self.layout1.addLayout(self.layout)
+        self.displays.addWidget(self.disp)
 
-        self.image_frame = QLabel()
-        self.layout1.addWidget(self.image_frame)
+        self.displays.addLayout(self.layout)
 
-        self.central_widget.setLayout(self.layout1)
-
+        self.central_widget.setLayout(self.displays)
         self.setCentralWidget(self.central_widget)
-        self.update_image(cv2.imread("images/start.jpg"))
-        self.pids = None
 
-    def update_image(self, frame):
-        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        my_frame = QImage(frame.data, frame.shape[1], frame.shape[0],
-                            QImage.Format_RGB888)
-        self.image_frame.setPixmap(QPixmap.fromImage(my_frame))
+        self.pids = None
 
     @pyqtSlot()
     def on_click_update(self):
         lines = []
-        lines.append(self.yaw_P.text()+','+self.roll_P.text()+','+self.throttle_P.text()+'\n')
-        lines.append(self.yaw_I.text()+','+self.roll_I.text()+','+self.throttle_I.text()+'\n')
-        lines.append(self.yaw_D.text()+','+self.roll_D.text()+','+self.throttle_D.text()+'\n')
+        lines.append(self.yaw_P.text() + ',' + self.roll_P.text() + ',' + self.throttle_P.text() + '\n')
+        lines.append(self.yaw_I.text() + ',' + self.roll_I.text() + ',' + self.throttle_I.text() + '\n')
+        lines.append(self.yaw_D.text() + ',' + self.roll_D.text() + ',' + self.throttle_D.text() + '\n')
         with open(os.path.join("settings", "pidValues.csv"), 'w') as fd:
             fd.writelines(lines)
         if self.pids is not None:
@@ -113,21 +126,42 @@ class ImageWindow(QMainWindow):
 
     @pyqtSlot()
     def on_click_start(self):
-        self.start()
+        self.pid_start()
 
     @pyqtSlot()
     def on_click_stop(self):
-        self.stop()
+        self.pid_stop()
 
-    def start(self):
+    def pid_start(self):
         if self.pids is not None:
             self.pids.update_ppm = True
             self.pids.update_pids = True
 
-    def stop(self):
+    def pid_stop(self):
         if self.pids is not None:
             self.pids.update_ppm = False
             self.pids.update_pids = False
+
+    def start(self):
+        self.timer = QTimer(self)  # Timer to trigger display
+        self.timer.timeout.connect(lambda: self.show_image(self.detector.frame, self.disp))
+        self.timer.start(Values.GUI_UPDATE_MS)
+
+    # Fetch camera image from queue, and display it
+    def show_image(self, image, display):
+        if image is not None:
+            img = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+            disp_size = img.shape[1], img.shape[0]
+            disp_bpl = disp_size[0] * 3
+            img = cv2.resize(img, disp_size, interpolation=cv2.INTER_CUBIC)
+            qimg = QImage(img.data, disp_size[0], disp_size[1], disp_bpl, QImage.Format_RGB888)
+            display.setImage(qimg)
+
+    def flush(self):
+        pass
+
+    def closeEvent(self, event):
+        self.pids.stop()
 
     def update_ppm_values(self, yaw, roll, throttle):
         self.throttle_ppm_label.setText(str(round(throttle, 1)))
@@ -140,6 +174,9 @@ class ImageWindow(QMainWindow):
         if event.key() == 16777216:
             self.stop()
 
+    def get_pids_object(self, my_pids):
+        self.pids = my_pids
+
     def show_pid_values(self):
         if self.pids is not None:
             self.yaw_P.setText(str(self.pids.yawPID.Kp))
@@ -151,13 +188,6 @@ class ImageWindow(QMainWindow):
             self.throttle_P.setText(str(self.pids.throttlePID.Kp))
             self.throttle_I.setText(str(self.pids.throttlePID.Ki))
             self.throttle_D.setText(str(self.pids.throttlePID.Kd))
-
-    def get_pids_object(self, my_pids):
-        self.pids = my_pids
-
-    def close(self):
-        sys.exit(self.app.exec_())
-
 
 class remoteImageWindow(QMainWindow):
     def __init__(self, tcp_server):

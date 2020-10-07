@@ -1,55 +1,65 @@
+import sys
+from PyQt5.QtWidgets import QApplication
 from detector.detector import Detector
 from settings.settings import Values
-from camera.camera import Camera
-import cv2
+from camera.camera import Camera2
+import cv2, threading
+import time
 
 if __name__ == '__main__':
     detector = Detector(Values.MODEL_PATH, Values.LABEL_PATH)
-    camera = Camera()
+    camera = Camera2()
+    camera.start()
+    pids = None
+    
+    def main_loop(pids):
+        if Values.REMOTE_CONTROL:
+            from TCPclient.TCPclient import TCPclient
+            from PIDs.PIDs import remotePIDs
 
-    if Values.REMOTE_CONTROL:
-        from TCPclient.TCPclient import TCPclient
-        from PIDs.PIDs import remotePIDs
+            pids = remotePIDs()
+            tcpThread = TCPclient(pids)
+            tcpThread.start()
+            
+        if Values.SEND_IMAGES_WIFI:
+            from imageStream.imageStream import ImageStream
+            imageStream = ImageStream()
+        try:
+            while True:
+                if camera.frame is None:
+                    continue
+                mid, ratio = detector.detect(camera.frame)         # mid liczony od: lewy gorny rog
 
-        pids = remotePIDs()
-        tcpThread = TCPclient(pids)
-        tcpThread.start()
-    else:
+                pids.update(mid, ratio)
+                
+                if not pids.is_running:
+                    break
+                if Values.SEND_IMAGES_WIFI:
+                    imageStream.send_image(cv2.resize(camera.frame, (200, 200)))
+                print("OK")
+        except ValueError:
+            print("Some error accured")
+        finally:
+            print("Closing")
+            camera.close()
+            pids.stop()
+    if not Values.REMOTE_CONTROL:
         from ImageWindow.ImageWindow import ImageWindow
         from PIDs.PIDs import PIDs
-
-        imageWindow = ImageWindow()
+        app = QApplication(sys.argv)
+        imageWindow = ImageWindow(detector)
+        pids = PIDs(imageWindow)
+        time.sleep(1)
+        
+    t1 = threading.Thread(target=main_loop, args=[pids])
+    t1.start()
+    
+    if not Values.REMOTE_CONTROL:
         imageWindow.show()
-        pids = PIDs(imageWindow)       #pewnie beda zle wartosci na wyjsciu do dopracowania
+        imageWindow.start()
+        sys.exit(app.exec_())
 
-    if Values.SEND_IMAGES_WIFI:
-        from imageStream.imageStream import ImageStream
-        imageStream = ImageStream()
-    cv2.waitKey(1)
-    try:
-        while True:
-            frame = camera.get_frame()
-            if frame is None:
-                continue
-            mid, ratio = detector.detect(frame)         # mid liczony od: lewy gorny rog
 
-            pids.update(mid, ratio)
 
-            if not Values.REMOTE_CONTROL:
-                imageWindow.update_image(frame)
-
-            if Values.SEND_IMAGES_WIFI:
-                imageStream.send_image(cv2.resize(frame, (200, 200)))
-
-            brk = cv2.waitKey(1) & 0xFF
-            if brk == ord('q') or brk == 27:
-                print("break")
-                break
-    except ValueError:
-        print("Some error accured")
-    finally:
-        print("Closing")
-        camera.close()
-        if not Values.REMOTE_CONTROL:
-            imageWindow.close()
-        pids.stop()
+  
+            

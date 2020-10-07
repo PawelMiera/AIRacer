@@ -10,10 +10,10 @@ class Values:
     USE_EDGE_TPU = False
     SHOW_IMAGES = False
     PRINT_FPS = True
-    SEND_IMAGES_WIFI = True
+    SEND_IMAGES_WIFI = False
     WINDOWS_GPU = False
 
-    REMOTE_CONTROL = True
+    REMOTE_CONTROL = False
     CAMERA = 0
     CAMERA_WIDTH = 720
     CAMERA_HEIGHT = 480
@@ -24,6 +24,8 @@ class Values:
     REMOTE_IP = "localhost"
     TCP_PORT = 6969
     IMAGE_STREAM_PORT = 5555
+    
+    GUI_UPDATE_MS = 50
 
 
 class PIDSettings:
