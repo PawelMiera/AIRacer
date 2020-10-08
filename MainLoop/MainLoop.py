@@ -2,7 +2,7 @@ from threading import Thread
 from detector.detector import Detector
 from settings.settings import Values
 from camera.camera import Camera
-from PIDs.PIDs import remotePIDs
+from PIDs.PIDs import PIDs
 import cv2
 import time
 
@@ -14,7 +14,7 @@ class MainLoop(Thread):
         self.detector = Detector(Values.MODEL_PATH, Values.LABEL_PATH)
         self.camera = Camera()
         self.camera.start()
-        self.pids = remotePIDs()
+        self.pids = PIDs()
         self.stop_loop = False
 
         if Values.REMOTE_CONTROL:
@@ -44,6 +44,7 @@ class MainLoop(Thread):
 
                 if Values.SEND_IMAGES_WIFI:
                     self.imageStream.send_image(cv2.resize(frame, Values.SENT_IMAGES_SIZE))
+
                 if Values.PRINT_FPS:
                     ind += 1
                     if time.time() - last_time > 1:

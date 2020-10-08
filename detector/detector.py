@@ -76,9 +76,6 @@ class Detector:
                               (xmin + labelSize[0], label_ymin + baseLine - 10), (255, 255, 255), cv2.FILLED)
                 cv2.putText(frame, label, (xmin, label_ymin - 7), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 0), 2)
 
-                if Values.SHOW_IMAGES:
-                    cv2.imshow("View", frame)
-                    cv2.waitKey(1)
         mid, ratio = self.check_detections(good_boxes, good_classes, good_scores)
         if mid is None:
             in_min = -1

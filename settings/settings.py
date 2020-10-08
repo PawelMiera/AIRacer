@@ -8,13 +8,12 @@ class Values:
     DETECTION_THRESHOLD = 0.61
 
     USE_EDGE_TPU = False
-    SHOW_IMAGES = False
     PRINT_FPS = True
-    SEND_IMAGES_WIFI = False
-    SENT_IMAGES_SIZE = (200, 200)
+    SEND_IMAGES_WIFI = True
+    SENT_IMAGES_SIZE = (400, 400)
     WINDOWS_GPU = False
 
-    REMOTE_CONTROL = False
+    REMOTE_CONTROL = True
 
     CAMERA = 0
     CAMERA_WIDTH = 720

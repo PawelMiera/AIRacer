@@ -10,15 +10,18 @@ class TCPclient(Thread):
 
     def __init__(self, pids: PIDs):
         Thread.__init__(self)
-        self.pids = pids
-        self.ip = Values.REMOTE_IP
-        self.port = Values.TCP_PORT
-        self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        self.socket.connect((self.ip, self.port))
-        self.last_yaw_output = self.pids.yawPID.output_ppm
-        self.last_roll_output = self.pids.rollPID.output_ppm
-        self.last_throttle_output = self.pids.throttlePID.output_ppm
+        try:
+            self.pids = pids
+            self.ip = Values.REMOTE_IP
+            self.port = Values.TCP_PORT
+            self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            self.socket.connect((self.ip, self.port))
+            self.last_yaw_output = self.pids.yawPID.output_ppm
+            self.last_roll_output = self.pids.rollPID.output_ppm
+            self.last_throttle_output = self.pids.throttlePID.output_ppm
+        except:
+            self.pids.stop()
 
     def run(self):
         t1 = Thread(target=self.handle_receive)
@@ -39,7 +42,7 @@ class TCPclient(Thread):
                     self.pids.update_ppm = False
                     self.pids.update_pids = False
                 elif data[0] == "p":
-                    with open(os.path.join("settings", "pidValues_remote.csv"), 'w') as fd:
+                    with open(os.path.join("settings", "pidValues.csv"), 'w') as fd:
                         fd.write(data[1:])
                     lines = data[1:].split("\n")
                     values = []
@@ -59,6 +62,7 @@ class TCPclient(Thread):
             except:
                 self.pids.stop()
                 break
+
     def handle_send(self):
         while True:
             try:
@@ -78,6 +82,7 @@ class TCPclient(Thread):
                     time.sleep(0.03)
                 time.sleep(0.05)
             except:
+                self.pids.stop()
                 print("socket sending error")
 
     def close(self):
