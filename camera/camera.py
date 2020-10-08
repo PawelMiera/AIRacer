@@ -1,11 +1,10 @@
 from threading import Thread
-
 import cv2
 from settings.settings import Values
 import time
 
 
-class Camera:
+class Camera2:
     def __init__(self):
         self.camera = cv2.VideoCapture(Values.CAMERA, cv2.CAP_DSHOW)
         #self.camera.set(3, Values.CAMERA_WIDTH)
@@ -32,7 +31,7 @@ class Camera:
         cv2.destroyAllWindows()
 
 
-class Camera2(Thread):
+class Camera(Thread):
     def __init__(self):
         Thread.__init__(self)
         self.camera = cv2.VideoCapture(Values.CAMERA, cv2.CAP_DSHOW)
@@ -43,8 +42,8 @@ class Camera2(Thread):
         while True:
             if self.stop:
                 break
-            #ret, self.frame = self.camera.read()
-            self.frame = cv2.imread("images/start.jpg")
+            ret, self.frame = self.camera.read()
+            #self.frame = cv2.imread("images/start.jpg")
             cv2.waitKey(1)
     def close(self):
         self.stop = True

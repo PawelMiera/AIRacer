@@ -1,13 +1,15 @@
-import threading, socket
+import socket
 from settings.settings import Values
 from PIDs.PIDs import PIDs
 import time
 import os
+from threading import Thread
 
-class TCPclient(threading.Thread):
+
+class TCPclient(Thread):
 
     def __init__(self, pids: PIDs):
-        threading.Thread.__init__(self)
+        Thread.__init__(self)
         self.pids = pids
         self.ip = Values.REMOTE_IP
         self.port = Values.TCP_PORT
@@ -19,8 +21,8 @@ class TCPclient(threading.Thread):
         self.last_throttle_output = self.pids.throttlePID.output_ppm
 
     def run(self):
-        t1 = threading.Thread(target=self.handle_receive)
-        t2 = threading.Thread(target=self.handle_send)
+        t1 = Thread(target=self.handle_receive)
+        t2 = Thread(target=self.handle_send)
         t1.start()
         t2.start()
         t1.join()

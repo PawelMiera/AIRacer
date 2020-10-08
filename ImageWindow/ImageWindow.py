@@ -30,9 +30,9 @@ class ImageWidget(QWidget):
 
 class ImageWindow(QMainWindow):
 
-    def __init__(self, detector):
+    def __init__(self, main_loop):
         super().__init__()
-        self.detector = detector
+        self.main_loop = main_loop
         self.central_widget = QWidget(self)
         self.setWindowTitle("AI Racer")
         P_label = QLabel("P")
@@ -102,8 +102,7 @@ class ImageWindow(QMainWindow):
 
         self.central_widget.setLayout(self.displays)
         self.setCentralWidget(self.central_widget)
-
-        self.pids = None
+        self.show_pid_values()
 
     @pyqtSlot()
     def on_click_update(self):
@@ -113,16 +112,16 @@ class ImageWindow(QMainWindow):
         lines.append(self.yaw_D.text() + ',' + self.roll_D.text() + ',' + self.throttle_D.text() + '\n')
         with open(os.path.join("settings", "pidValues.csv"), 'w') as fd:
             fd.writelines(lines)
-        if self.pids is not None:
-            self.pids.yawPID.Kp = float(self.yaw_P.text())
-            self.pids.yawPID.Ki = float(self.yaw_I.text())
-            self.pids.yawPID.Kd = float(self.yaw_D.text())
-            self.pids.rollPID.Kd = float(self.roll_P.text())
-            self.pids.rollPID.Ki = float(self.roll_I.text())
-            self.pids.rollPID.Kd = float(self.roll_D.text())
-            self.pids.throttlePID.Kp = float(self.roll_P.text())
-            self.pids.throttlePID.Ki = float(self.roll_I.text())
-            self.pids.throttlePID.Kd = float(self.roll_D.text())
+
+        self.main_loop.pids.yawPID.Kp = float(self.yaw_P.text())
+        self.main_loop.pids.yawPID.Ki = float(self.yaw_I.text())
+        self.main_loop.pids.yawPID.Kd = float(self.yaw_D.text())
+        self.main_loop.pids.rollPID.Kd = float(self.roll_P.text())
+        self.main_loop.pids.rollPID.Ki = float(self.roll_I.text())
+        self.main_loop.pids.rollPID.Kd = float(self.roll_D.text())
+        self.main_loop.pids.throttlePID.Kp = float(self.roll_P.text())
+        self.main_loop.pids.throttlePID.Ki = float(self.roll_I.text())
+        self.main_loop.pids.throttlePID.Kd = float(self.roll_D.text())
 
     @pyqtSlot()
     def on_click_start(self):
@@ -133,18 +132,16 @@ class ImageWindow(QMainWindow):
         self.pid_stop()
 
     def pid_start(self):
-        if self.pids is not None:
-            self.pids.update_ppm = True
-            self.pids.update_pids = True
+        self.main_loop.pids.update_ppm = True
+        self.main_loop.pids.update_pids = True
 
     def pid_stop(self):
-        if self.pids is not None:
-            self.pids.update_ppm = False
-            self.pids.update_pids = False
+        self.main_loop.pids.update_ppm = False
+        self.main_loop.pids.update_pids = False
 
     def start(self):
         self.timer = QTimer(self)  # Timer to trigger display
-        self.timer.timeout.connect(lambda: self.show_image(self.detector.frame, self.disp))
+        self.timer.timeout.connect(lambda: self.show_image(self.main_loop.detector.frame, self.disp))
         self.timer.start(Values.GUI_UPDATE_MS)
 
     # Fetch camera image from queue, and display it
@@ -161,7 +158,7 @@ class ImageWindow(QMainWindow):
         pass
 
     def closeEvent(self, event):
-        self.pids.stop()
+        self.main_loop.close()
 
     def update_ppm_values(self, yaw, roll, throttle):
         self.throttle_ppm_label.setText(str(round(throttle, 1)))
@@ -175,19 +172,19 @@ class ImageWindow(QMainWindow):
             self.stop()
 
     def get_pids_object(self, my_pids):
-        self.pids = my_pids
+        self.main_loop.pids = my_pids
 
     def show_pid_values(self):
-        if self.pids is not None:
-            self.yaw_P.setText(str(self.pids.yawPID.Kp))
-            self.yaw_I.setText(str(self.pids.yawPID.Ki))
-            self.yaw_D.setText(str(self.pids.yawPID.Kd))
-            self.roll_P.setText(str(self.pids.rollPID.Kp))
-            self.roll_I.setText(str(self.pids.rollPID.Ki))
-            self.roll_D.setText(str(self.pids.rollPID.Kd))
-            self.throttle_P.setText(str(self.pids.throttlePID.Kp))
-            self.throttle_I.setText(str(self.pids.throttlePID.Ki))
-            self.throttle_D.setText(str(self.pids.throttlePID.Kd))
+        self.yaw_P.setText(str(self.main_loop.pids.yawPID.Kp))
+        self.yaw_I.setText(str(self.main_loop.pids.yawPID.Ki))
+        self.yaw_D.setText(str(self.main_loop.pids.yawPID.Kd))
+        self.roll_P.setText(str(self.main_loop.pids.rollPID.Kp))
+        self.roll_I.setText(str(self.main_loop.pids.rollPID.Ki))
+        self.roll_D.setText(str(self.main_loop.pids.rollPID.Kd))
+        self.throttle_P.setText(str(self.main_loop.pids.throttlePID.Kp))
+        self.throttle_I.setText(str(self.main_loop.pids.throttlePID.Ki))
+        self.throttle_D.setText(str(self.main_loop.pids.throttlePID.Kd))
+
 
 class remoteImageWindow(QMainWindow):
     def __init__(self, tcp_server):

@@ -81,7 +81,14 @@ class Detector:
                     cv2.waitKey(1)
         mid, ratio = self.check_detections(good_boxes, good_classes, good_scores)
         if mid is None:
-            mid = [PIDSettings.THROTTLE_SETPOINT, PIDSettings.ROLL_SETPOINT]
+            in_min = -1
+            in_max = 1
+            out_max = 1
+            out_min = 0
+            a = (PIDSettings.THROTTLE_SETPOINT - in_min) * (out_max - out_min) / (in_max - in_min) + out_min
+            b = ((PIDSettings.ROLL_SETPOINT - in_min) * (out_max - out_min) / (in_max - in_min) + out_min)
+            mid = [a, b]
+
         if ratio is None:
             ratio = PIDSettings.YAW_SETPOINT
         cv2.circle(frame, (int(mid[0] * width), int(mid[1] * height)), 15, (0, 0, 255), 2)
