@@ -44,9 +44,9 @@ class PIDs:
     def send_ppm(self):
         if self.update_ppm:
             #print(self.yawPID.output_ppm, self.rollPID.output_ppm, self.throttlePID.output_ppm,
-            #      self.yawPID.value, self.rollPID.value, self.throttlePID.value)
-            self.ppm.update_ppm_channels([self.throttlePID.output_ppm, self.yawPID.output_ppm, self.rollPID.output_ppm,
-                                          1500, 1000, 1000, 1000, 1000])
+            #      self.yawPID.value, self.rollPID.value, self.throttlePID.value
+            vals = [int(self.throttlePID.output_ppm), int(self.yawPID.output_ppm), int(self.rollPID.output_ppm), 1500, 1000, 1000, 1000, 1000]
+            self.ppm.update_ppm_channels(vals)
         else:
             print("all ppm to lowest value")
 

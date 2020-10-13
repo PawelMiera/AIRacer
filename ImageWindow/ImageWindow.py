@@ -141,11 +141,14 @@ class ImageWindow(QMainWindow):
 
     def start(self):
         self.timer = QTimer(self)  # Timer to trigger display
-        self.timer.timeout.connect(lambda: self.show_image(self.main_loop.frame, self.disp))
+        self.timer.timeout.connect(lambda: self.show_image(self.main_loop.detector.frame, self.disp))
         self.timer.start(Values.GUI_UPDATE_MS)
 
     # Fetch camera image from queue, and display it
     def show_image(self, image, display):
+        self.throttle_ppm_label.setText(str(round(self.main_loop.pids.throttlePID.output_ppm, 1)))
+        self.yaw_ppm_label.setText(str(round(self.main_loop.pids.yawPID.output_ppm, 1)))
+        self.roll_ppm_label.setText(str(round(self.main_loop.pids.rollPID.output_ppm, 1)))
         if image is not None:
             img = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
             disp_size = img.shape[1], img.shape[0]
@@ -160,11 +163,6 @@ class ImageWindow(QMainWindow):
     def closeEvent(self, event):
         print("Image window closed!")
         self.main_loop.close()
-
-    def update_ppm_values(self, yaw, roll, throttle):
-        self.throttle_ppm_label.setText(str(round(throttle, 1)))
-        self.yaw_ppm_label.setText(str(round(yaw, 1)))
-        self.roll_ppm_label.setText(str(round(roll, 1)))
 
     def keyPressEvent(self, event):
         if event.key() == 16777220:
