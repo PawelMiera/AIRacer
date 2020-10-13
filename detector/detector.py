@@ -162,21 +162,20 @@ class Detector:
 
         elif Gate_score == 0 and corners == 1:
             if LU != -1:
-                mid = (boxes[LU][3], boxes[LU][2])
+                mid = [boxes[LU][3], boxes[LU][2]]
             elif LD != -1:
-                mid = (boxes[LD][3], boxes[LD][0])
+                mid = [boxes[LD][3], boxes[LD][0]]
             elif RD != -1:
-                mid = (boxes[RD][1], boxes[RD][0])
+                mid = [boxes[RD][1], boxes[RD][0]]
             elif RU != -1:
-                mid = (boxes[RU][1], boxes[RU][2])
+                mid = [boxes[RU][1], boxes[RU][2]]
             return mid, 1
 
         else:
             if corners == 4:
                 points = [(boxes[LU][1], boxes[LU][0]), (boxes[LD][1], boxes[LD][2]), (boxes[RU][3], boxes[RU][0]),
                           (boxes[RD][3], boxes[RD][2])]
-                corner_mid = np.mean(points, axis=0)
-                mid = corner_mid
+                mid = np.mean(points, axis=0)
                 width = (boxes[RU][3] + boxes[RD][3]) / 2 - (boxes[LU][1] + boxes[LD][1]) / 2
                 height = (boxes[LD][2] + boxes[RD][2]) / 2 - (boxes[RU][0] + boxes[LU][0]) / 2
             elif corners == 3:
