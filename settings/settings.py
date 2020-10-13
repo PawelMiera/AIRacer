@@ -9,11 +9,11 @@ class Values:
 
     USE_EDGE_TPU = False
     PRINT_FPS = True
-    SEND_IMAGES_WIFI = True
+    SEND_IMAGES_WIFI = False
     SENT_IMAGES_SIZE = (200, 200)
     WINDOWS_GPU = False
 
-    REMOTE_CONTROL = True
+    REMOTE_CONTROL = False
 
     CAMERA = 0
     CAMERA_WIDTH = 720
@@ -22,7 +22,7 @@ class Values:
 
     PPM_PIN = 4
 
-    REMOTE_IP = "192.168.31.104"
+    REMOTE_IP = "192.168.31.15"
     TCP_PORT = 6969
     IMAGE_STREAM_PORT = 5555
     

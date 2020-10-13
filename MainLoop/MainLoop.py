@@ -16,6 +16,7 @@ class MainLoop(Thread):
         #self.camera.start()
         self.pids = PIDs()
         self.stop_loop = False
+        self.frame = cv2.imread("images/start.jpg")
 
         if Values.REMOTE_CONTROL:
             from TCPclient.TCPclient import TCPclient
@@ -35,12 +36,12 @@ class MainLoop(Thread):
                 if self.stop_loop:
                     break
 
-                frame = self.camera.get_frame()
+                self.frame = self.camera.get_frame()
 
-                if frame is None:
+                if self.frame is None:
                     continue
 
-                mid, ratio = self.detector.detect(frame)  # mid liczony od: lewy gorny rog
+                mid, ratio = self.detector.detect(self.frame)  # mid liczony od: lewy gorny rog
                 self.pids.update(mid, ratio)
 
                 if Values.SEND_IMAGES_WIFI:

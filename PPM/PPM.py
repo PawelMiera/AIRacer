@@ -85,7 +85,7 @@ class X:
                 self.pi.wave_delete(i)
 
 
-class PPM:
+class My_PPM:
     def __init__(self):
         self.pi = pigpio.pi()
 

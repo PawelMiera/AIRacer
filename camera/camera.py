@@ -6,26 +6,19 @@ import time
 
 class Camera2:
     def __init__(self):
-        self.camera = cv2.VideoCapture(Values.CAMERA, cv2.CAP_DSHOW)
+        self.camera = cv2.VideoCapture(Values.CAMERA)
         #self.camera.set(3, Values.CAMERA_WIDTH)
         #self.camera.set(4, Values.CAMERA_HEIGHT)
-        if Values.PRINT_FPS:
-            self.count = 0
-            self.start = time.time()
+
 
     def get_frame(self):
         ret, frame = self.camera.read()
-        if Values.PRINT_FPS:
-            self.count += 1
-            if time.time() - self.start > 1:
-                self.start = time.time()
-                print("FPS: " + str(self.count))
-                self.count = 0
-
+        #cv2.imshow("xd", frame)
+        #cv2.waitKey(1)
         if ret:
             return frame
         else:
-            return False
+            return None
     def close(self):
         self.camera.release()
         cv2.destroyAllWindows()
@@ -45,7 +38,7 @@ class Camera(Thread):
                 break
             #self.frame = cv2.imread("images/start.jpg")
             ret, self.frame = self.camera.read()
-
+            cv2.imshow("xd", self.frame)
             self.new_frame = True
             cv2.waitKey(1)
         self.camera.release()

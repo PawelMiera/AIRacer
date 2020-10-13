@@ -141,7 +141,7 @@ class ImageWindow(QMainWindow):
 
     def start(self):
         self.timer = QTimer(self)  # Timer to trigger display
-        self.timer.timeout.connect(lambda: self.show_image(self.main_loop.detector.frame, self.disp))
+        self.timer.timeout.connect(lambda: self.show_image(self.main_loop.frame, self.disp))
         self.timer.start(Values.GUI_UPDATE_MS)
 
     # Fetch camera image from queue, and display it
