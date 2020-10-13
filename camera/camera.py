@@ -34,7 +34,7 @@ class Camera2:
 class Camera(Thread):
     def __init__(self):
         Thread.__init__(self)
-        self.camera = cv2.VideoCapture(Values.CAMERA, cv2.CAP_DSHOW)
+        #self.camera = cv2.VideoCapture(Values.CAMERA)
         self.frame = None
         self.stop = False
 
@@ -42,8 +42,9 @@ class Camera(Thread):
         while True:
             if self.stop:
                 break
-            ret, self.frame = self.camera.read()
+            self.frame = cv2.imread("images/start.jpg")
+            #ret, self.frame = self.camera.read()
             #self.frame = cv2.imread("images/start.jpg")
-            cv2.waitKey(1)
+            cv2.waitKey(10)
     def close(self):
         self.stop = True

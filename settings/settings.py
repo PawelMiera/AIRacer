@@ -22,7 +22,7 @@ class Values:
 
     PPM_PIN = 4
 
-    REMOTE_IP = "localhost"
+    REMOTE_IP = "192.168.31.46"
     TCP_PORT = 6969
     IMAGE_STREAM_PORT = 5555
     

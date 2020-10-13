@@ -32,15 +32,13 @@ class MainLoop(Thread):
                 last_time = time.time()
                 ind = 0
             while True:
+                if self.stop_loop:
+                    break
                 frame = self.camera.frame
                 if frame is None:
                     continue
                 mid, ratio = self.detector.detect(frame)  # mid liczony od: lewy gorny rog
-
                 self.pids.update(mid, ratio)
-
-                if self.stop_loop:
-                    break
 
                 if Values.SEND_IMAGES_WIFI:
                     self.imageStream.send_image(cv2.resize(frame, Values.SENT_IMAGES_SIZE))

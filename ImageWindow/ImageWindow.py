@@ -158,6 +158,7 @@ class ImageWindow(QMainWindow):
         pass
 
     def closeEvent(self, event):
+        print("Image window closed!")
         self.main_loop.close()
 
     def update_ppm_values(self, yaw, roll, throttle):
