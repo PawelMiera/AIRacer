@@ -35,9 +35,9 @@ class MainLoop(Thread):
                 frame = self.camera.frame
                 if frame is None:
                     continue
-                mid, ratio = self.detector.detect(frame)  # mid liczony od: lewy gorny rog
+                #mid, ratio = self.detector.detect(frame)  # mid liczony od: lewy gorny rog
 
-                self.pids.update(mid, ratio)
+                #self.pids.update(mid, ratio)
 
                 if self.stop_loop:
                     break
