@@ -1,6 +1,6 @@
 from PID.PID import PID
 from settings.settings import PIDSettings as ps
-from PPM.PPM import PPM
+from PPM.PPM import My_PPM
 from ImageWindow.ImageWindow import ImageWindow
 from threading import Timer
 import csv
@@ -12,7 +12,7 @@ class PIDs:
         self._timer = None
         self.dt = ps.PID_PPM_UPDATE_TIME
         self.is_running = False
-        self.ppm = PPM()
+        self.ppm = My_PPM()
         self.update_ppm = False
         self.update_pids = False
         values = self.get_pid_values()
@@ -45,7 +45,8 @@ class PIDs:
         if self.update_ppm:
             #print(self.yawPID.output_ppm, self.rollPID.output_ppm, self.throttlePID.output_ppm,
             #      self.yawPID.value, self.rollPID.value, self.throttlePID.value)
-            pass
+            self.ppm.update_ppm_channels([self.throttlePID.output_ppm, self.yawPID.output_ppm, self.rollPID.output_ppm,
+                                          1500, 1000, 1000, 1000, 1000])
         else:
             print("all ppm to lowest value")
 

@@ -94,13 +94,14 @@ class My_PPM:
 
         self.pi.wave_tx_stop()  # Start with a clean slate.
 
-        self.ppm = PPM.X(self.pi, 4, frame_ms=20)
+        self.ppm = X(self.pi, Values.PPM_PIN, frame_ms=20)
+
         self.ppm.update_channels([1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000])
 
     def update_ppm_channels(self, values):
         start = time.time()
         self.ppm.update_channels(values)
-        print("ppm took", time.time()-start, " sec")
+        print("PPM took", time.time()-start, " sec")
 
     def stop(self):
         self.ppm.cancel()
