@@ -45,13 +45,13 @@ class MainLoop(Thread):
                 self.pids.update(mid, ratio)
 
                 if Values.SEND_IMAGES_WIFI:
-                    self.imageStream.send_image(cv2.resize(frame, Values.SENT_IMAGES_SIZE))
+                    self.imageStream.send_image(cv2.resize(self.detector.frame, Values.SENT_IMAGES_SIZE))
 
                 if Values.PRINT_FPS:
                     ind += 1
                     if time.time() - last_time > 1:
                         print("FPS:", ind)
-                        ind=0
+                        ind = 0
                         last_time = time.time()
         except ValueError as er:
             print("Some error accured: ", str(er))

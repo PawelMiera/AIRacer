@@ -100,9 +100,9 @@ class My_PPM:
         print("PPM started!")
 
     def update_ppm_channels(self, values):
-        start = time.time()
+        #start = time.time()
         self.ppm.update_channels(values)
-        print("PPM took", time.time()-start, " sec")
+        #print("PPM took", time.time()-start, " sec")
 
     def stop(self):
         self.ppm.cancel()
