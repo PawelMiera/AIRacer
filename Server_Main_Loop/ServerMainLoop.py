@@ -24,7 +24,7 @@ class ServerMainLoop(Thread):
         if Values.SEND_IMAGES_WIFI:
             context = zmq.Context()
             footage_socket = context.socket(zmq.SUB)
-            footage_socket.bind('tcp://127.0.0.1:5555')
+            footage_socket.bind('tcp://*:5555')
             footage_socket.setsockopt_string(zmq.SUBSCRIBE, np.unicode(''))
 
         start = time.time()
