@@ -1,5 +1,4 @@
 import time
-import PPM
 import pigpio
 from settings.settings import Values
 

@@ -1,7 +1,7 @@
 from threading import Thread
 from detector.detector import Detector
 from settings.settings import Values
-from camera.camera import Camera
+from camera.camera import Camera2
 from PIDs.PIDs import PIDs
 import cv2
 import time
@@ -12,8 +12,7 @@ class MainLoop(Thread):
     def __init__(self):
         Thread.__init__(self)
         self.detector = Detector(Values.MODEL_PATH, Values.LABEL_PATH)
-        self.camera = Camera()
-        self.camera.start()
+        self.camera = Camera2()
         self.pids = PIDs()
         self.stop_loop = False
         self.frame = cv2.imread("images/start.jpg")

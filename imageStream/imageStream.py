@@ -3,6 +3,7 @@ import zmq
 from settings.settings import Values
 import cv2
 
+
 class ImageStream:
     def __init__(self):
         context = zmq.Context()

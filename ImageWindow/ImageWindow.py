@@ -3,8 +3,8 @@ import csv
 import os
 
 from PyQt5.QtCore import QTimer, QPoint, pyqtSlot
-from PyQt5.QtGui import QFont, QPainter, QImage
-from PyQt5.QtWidgets import QApplication, QMainWindow, QLabel
+from PyQt5.QtGui import QPainter, QImage
+from PyQt5.QtWidgets import QMainWindow, QLabel
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLineEdit, QGridLayout, QPushButton
 
 from settings.settings import Values
@@ -106,10 +106,9 @@ class ImageWindow(QMainWindow):
 
     @pyqtSlot()
     def on_click_update(self):
-        lines = []
-        lines.append(self.yaw_P.text() + ',' + self.roll_P.text() + ',' + self.throttle_P.text() + '\n')
-        lines.append(self.yaw_I.text() + ',' + self.roll_I.text() + ',' + self.throttle_I.text() + '\n')
-        lines.append(self.yaw_D.text() + ',' + self.roll_D.text() + ',' + self.throttle_D.text() + '\n')
+        lines = [self.yaw_P.text() + ',' + self.roll_P.text() + ',' + self.throttle_P.text() + '\n',
+                 self.yaw_I.text() + ',' + self.roll_I.text() + ',' + self.throttle_I.text() + '\n',
+                 self.yaw_D.text() + ',' + self.roll_D.text() + ',' + self.throttle_D.text() + '\n']
         with open(os.path.join("settings", "pidValues.csv"), 'w') as fd:
             fd.writelines(lines)
 
@@ -140,11 +139,10 @@ class ImageWindow(QMainWindow):
         self.main_loop.pids.update_pids = False
 
     def start(self):
-        self.timer = QTimer(self)  # Timer to trigger display
+        self.timer = QTimer(self)
         self.timer.timeout.connect(lambda: self.show_image(self.main_loop.detector.frame, self.disp))
         self.timer.start(Values.GUI_UPDATE_MS)
 
-    # Fetch camera image from queue, and display it
     def show_image(self, image, display):
         self.throttle_ppm_label.setText(str(round(self.main_loop.pids.throttlePID.output_ppm, 1)))
         self.yaw_ppm_label.setText(str(round(self.main_loop.pids.yawPID.output_ppm, 1)))
@@ -260,10 +258,9 @@ class RemoteImageWindow(QMainWindow):
 
     @pyqtSlot()
     def on_click_update(self):
-        lines = []
-        lines.append(self.yaw_P.text() + ',' + self.roll_P.text() + ',' + self.throttle_P.text() + '\n')
-        lines.append(self.yaw_I.text() + ',' + self.roll_I.text() + ',' + self.throttle_I.text() + '\n')
-        lines.append(self.yaw_D.text() + ',' + self.roll_D.text() + ',' + self.throttle_D.text() + '\n')
+        lines = [self.yaw_P.text() + ',' + self.roll_P.text() + ',' + self.throttle_P.text() + '\n',
+                 self.yaw_I.text() + ',' + self.roll_I.text() + ',' + self.throttle_I.text() + '\n',
+                 self.yaw_D.text() + ',' + self.roll_D.text() + ',' + self.throttle_D.text() + '\n']
         with open(os.path.join("settings", "pidValues.csv"), 'w') as fd:
             fd.writelines(lines)
 
@@ -293,11 +290,10 @@ class RemoteImageWindow(QMainWindow):
             print("Cant send message")
 
     def start(self):
-        self.timer = QTimer(self)  # Timer to trigger display
+        self.timer = QTimer(self)
         self.timer.timeout.connect(lambda: self.show_image_update_ppm(self.main_loop.frame, self.disp))
         self.timer.start(Values.GUI_UPDATE_MS)
 
-    # Fetch camera image from queue, and display it
     def show_image_update_ppm(self, image, display):
         self.update_ppm_values()
         if image is not None:
