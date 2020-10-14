@@ -7,6 +7,7 @@ import base64
 import numpy as np
 import zmq
 
+
 class ServerMainLoop(Thread):
 
     def __init__(self):

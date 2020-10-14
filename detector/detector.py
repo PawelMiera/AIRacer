@@ -287,4 +287,19 @@ class Detector:
         else:
             sides_ratio /= width
 
+        if mid[0] > 1:
+            mid[0] = 1
+        elif mid[0] < 0:
+            mid[0] = 0
+
+        if mid[1] > 1:
+            mid[1] = 1
+        elif mid[1] < 0:
+            mid[1] = 0
+
+        if sides_ratio > 1:
+            sides_ratio = 1
+        elif sides_ratio < -1:
+            sides_ratio = -1
+
         return mid, sides_ratio
