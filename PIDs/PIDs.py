@@ -1,5 +1,6 @@
 from PID.PID import PID
 from settings.settings import PIDSettings as ps
+from settings.settings import Values
 from PPM.PPM import My_PPM
 from threading import Timer
 import csv
@@ -21,6 +22,9 @@ class PIDs:
         self.throttlePID = PID(ps.THROTTLE_SETPOINT, 1000, 2000, float(values[0][2]), float(values[1][2]), float(values[2][2]), start_from_min=True)
         #pitchPID = PID(0.5, 1000, 2000, 1, 2, 3)
 
+        if Values.WRITE_TO_FILE:
+            self.file = open('inputs_outputs.csv', 'a')
+
         self.start()
 
     def start(self):
@@ -35,6 +39,9 @@ class PIDs:
         self.calculate_pids()
         self.send_ppm()
 
+        if Values.WRITE_TO_FILE:
+            self.write_to_file()
+
     def stop(self):
         self._timer.cancel()
         self.is_running = False
@@ -42,6 +49,8 @@ class PIDs:
         self.update_ppm = False         ################## ??????????? moze cos byc  nie tak
         self.update_pids = False
         self.ppm.update_ppm_channels([1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000])
+        if Values.WRITE_TO_FILE:
+            self.file.close()
 
     def send_ppm(self):
         if self.update_ppm:
@@ -95,6 +104,12 @@ class PIDs:
         self.throttlePID.Ki = float(values[1][2])
         self.throttlePID.Kd = float(values[2][2])
 
+    def write_to_file(self):
+        line = str(self.yawPID.value) + "," + str(self.yawPID.output_ppm) + "," + str(self.rollPID.value) + "," + \
+              str(self.rollPID.output_ppm) + "," + str(self.throttlePID.value) + "," + \
+              str(self.throttlePID.output_ppm) + "\n"
+        self.file.write(line)
+
 
 class multiPIDs:
     def __init__(self, conn):
@@ -117,7 +132,11 @@ class multiPIDs:
 
         #pitchPID = PID(0.5, 1000, 2000, 1, 2, 3)
 
+        if Values.WRITE_TO_FILE:
+            self.file = open('inputs_outputs.csv', 'a')
+
         self.start()
+
 
     def start(self):
         if not self.is_running:
@@ -130,6 +149,8 @@ class multiPIDs:
         self.start()
         self.calculate_pids()
         self.send_ppm()
+        if Values.WRITE_TO_FILE:
+            self.write_to_file()
 
     def stop(self):
         self._timer.cancel()
@@ -138,6 +159,8 @@ class multiPIDs:
         self.update_ppm = False         ################## ??????????? moze cos byc  nie tak
         self.update_pids = False
         self.ppm.update_ppm_channels([1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000])
+        if Values.WRITE_TO_FILE:
+            self.file.close()
 
     def send_ppm(self):
         if self.update_ppm:
@@ -200,3 +223,9 @@ class multiPIDs:
         self.throttlePID.Kp = float(values[0][2])
         self.throttlePID.Ki = float(values[1][2])
         self.throttlePID.Kd = float(values[2][2])
+
+    def write_to_file(self):
+        line = str(self.yawPID.value) + "," + str(self.yawPID.output_ppm) + "," + str(self.rollPID.value) + "," + \
+              str(self.rollPID.output_ppm) + "," + str(self.throttlePID.value) + "," + \
+              str(self.throttlePID.output_ppm) + "\n"
+        self.file.write(line)

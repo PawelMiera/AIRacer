@@ -15,6 +15,8 @@ class Values:
 
     REMOTE_CONTROL = False
 
+    WRITE_TO_FILE = False
+
     CAMERA = 0
     CAMERA_WIDTH = 720
     CAMERA_HEIGHT = 480
