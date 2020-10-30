@@ -5,6 +5,7 @@ from PPM.PPM import My_PPM
 from threading import Timer
 import csv
 import os
+import time
 
 
 class PIDs:
@@ -15,11 +16,12 @@ class PIDs:
         self.ppm = My_PPM()
         self.update_ppm = False
         self.update_pids = False
+        self.first_start = True
         values = self.get_pid_values()
 
         self.yawPID = PID(ps.YAW_SETPOINT, 1000, 2000, float(values[0][0]), float(values[1][0]), float(values[2][0]))
         self.rollPID = PID(ps.ROLL_SETPOINT, 1000, 2000, float(values[0][1]), float(values[1][1]), float(values[2][1]))
-        self.throttlePID = PID(ps.THROTTLE_SETPOINT, 1000, 2000, float(values[0][2]), float(values[1][2]), float(values[2][2]), start_from_min=True)
+        self.throttlePID = PID(ps.THROTTLE_SETPOINT, 1000, 2000, float(values[0][2]), float(values[1][2]), float(values[2][2]))
         #pitchPID = PID(0.5, 1000, 2000, 1, 2, 3)
 
         if Values.WRITE_TO_FILE:
@@ -54,10 +56,30 @@ class PIDs:
 
     def send_ppm(self):
         if self.update_ppm:
-            vals = [int(self.throttlePID.output_ppm), int(self.yawPID.output_ppm), int(self.rollPID.output_ppm), 1500, 1000, 1000, 1000, 1000]
+            #
+            if self.first_start:
+                self.stop()
+                self.first_start = False
+                self.ppm.update_ppm_channels([1500, 1500, 1000, 1500, 1100, 1800, 1000, 1000])
+                time.sleep(2)
+                self.ppm.update_ppm_channels([1500, 1500, 1000, 1500, 1800, 1800, 1000, 1000])
+                time.sleep(2)
+                self.ppm.update_ppm_channels([1500, 1500, 1000, 1500, 1800, 1100, 1000, 1000])
+                time.sleep(2)
+                self.ppm.update_ppm_channels([1500, 1500, 1600, 1500, 1800, 1100, 1000, 1000])
+                time.sleep(2)
+                self.ppm.update_ppm_channels([1500, 1500, 1500, 1500, 1800, 1100, 1000, 1000])
+                
+                self.update_ppm = True     
+                self.update_pids = True
+                self.start()
+                
+            vals = [int(self.rollPID.output_ppm),1500, int(self.throttlePID.output_ppm), 1500, 1800, 1100, 1000, 1000]
             self.ppm.update_ppm_channels(vals)
             print(vals)
         else:
+            self.first_start = True
+            self.ppm.update_ppm_channels([1500, 1500, 1000, 1500, 1100, 1800, 1000, 1000])
             print("all ppm to lowest value")
 
     def calculate_pids(self):
@@ -77,8 +99,8 @@ class PIDs:
         out_min = -1
         mid[0] = (mid[0] - in_min) * (out_max - out_min) / (in_max - in_min) + out_min
         mid[1] = -((mid[1] - in_min) * (out_max - out_min) / (in_max - in_min) + out_min)
-        self.yawPID.update(ratio)
-        self.rollPID.update(mid[0])
+        self.yawPID.update(-ratio)
+        self.rollPID.update(-mid[0])
         self.throttlePID.update(-mid[1])
 
     def get_pid_values(self):
