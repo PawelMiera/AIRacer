@@ -3,11 +3,11 @@ import os
 
 class Values:
 
-    MODEL_PATH = os.path.join('models', 'AIRacer_FPV.tflite')
+    MODEL_PATH = os.path.join('models', 'AIRacer_FPV_edgetpu.tflite')
 
     DETECTION_THRESHOLD = 0.499  #0.61
 
-    USE_EDGE_TPU = False
+    USE_EDGE_TPU = True
     PRINT_FPS = True
     SEND_IMAGES_WIFI = False
     SENT_IMAGES_SIZE = (200, 200)
@@ -17,7 +17,7 @@ class Values:
 
     WRITE_TO_FILE = False
 
-    WINDOWS_TESTS = True
+    WINDOWS_TESTS = False
 
     CAMERA = 0
     CAMERA_WIDTH = 720
