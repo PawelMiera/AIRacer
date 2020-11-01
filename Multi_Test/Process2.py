@@ -59,7 +59,7 @@ class Process2:
         t1 = Thread(target=self.receive)
         t1.start()
 
-        self.detector = Detector(Values.MODEL_PATH, Values.LABEL_PATH)
+        self.detector = Detector(Values.MODEL_PATH)
         self.camera = Camera2()
         self.pids = multiPIDs(self.child_conn)
         self.stop_loop = False

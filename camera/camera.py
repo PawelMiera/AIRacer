@@ -6,8 +6,8 @@ from settings.settings import Values
 class Camera2:
     def __init__(self):
         self.camera = cv2.VideoCapture(Values.CAMERA)
-        #self.camera.set(3, Values.CAMERA_WIDTH)
-        #self.camera.set(4, Values.CAMERA_HEIGHT)
+        self.camera.set(3, Values.CAMERA_WIDTH)
+        self.camera.set(4, Values.CAMERA_HEIGHT)
 
     def get_frame(self):
         ret, frame = self.camera.read()

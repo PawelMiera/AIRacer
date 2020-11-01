@@ -1,7 +1,8 @@
 from PID.PID import PID
 from settings.settings import PIDSettings as ps
 from settings.settings import Values
-from PPM.PPM import My_PPM
+if not Values.WINDOWS_TESTS:
+    from PPM.PPM import My_PPM
 from threading import Timer
 import csv
 import os
@@ -13,7 +14,8 @@ class PIDs:
         self._timer = None
         self.dt = ps.PID_PPM_UPDATE_TIME
         self.is_running = False
-        self.ppm = My_PPM()
+        if not Values.WINDOWS_TESTS:            # do wywalenia pozniej bo szkoda obliczen
+            self.ppm = My_PPM()
         self.update_ppm = False
         self.update_pids = False
         self.first_start = True
@@ -24,9 +26,14 @@ class PIDs:
         self.throttlePID = PID(ps.THROTTLE_SETPOINT, 1000, 2000, float(values[0][2]), float(values[1][2]), float(values[2][2]))
         #pitchPID = PID(0.5, 1000, 2000, 1, 2, 3)
 
+        self.last_yaw_ppm = 0
+        self.last_roll_ppm = 0
+        self.last_throttle_ppm = 0
+
         if Values.WRITE_TO_FILE:
             self.file = open('inputs_outputs.csv', 'a')
-
+        if not Values.WINDOWS_TESTS:
+            self.ppm.update_ppm_channels([1500, 1500, 1000, 1500, 1100, 1800, 1000, 1000])
         self.start()
 
     def start(self):
@@ -47,40 +54,52 @@ class PIDs:
     def stop(self):
         self._timer.cancel()
         self.is_running = False
-
         self.update_ppm = False         ################## ??????????? moze cos byc  nie tak
         self.update_pids = False
-        self.ppm.update_ppm_channels([1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000])
+        if not Values.WINDOWS_TESTS:
+            self.ppm.update_ppm_channels([1500, 1500, 1000, 1500, 1100, 1800, 1000, 1000])
         if Values.WRITE_TO_FILE:
             self.file.close()
 
     def send_ppm(self):
-        if self.update_ppm:
-            #
-            if self.first_start:
-                self.stop()
-                self.first_start = False
-                self.ppm.update_ppm_channels([1500, 1500, 1000, 1500, 1100, 1800, 1000, 1000])
-                time.sleep(2)
-                self.ppm.update_ppm_channels([1500, 1500, 1000, 1500, 1800, 1800, 1000, 1000])
-                time.sleep(2)
-                self.ppm.update_ppm_channels([1500, 1500, 1000, 1500, 1800, 1100, 1000, 1000])
-                time.sleep(2)
-                self.ppm.update_ppm_channels([1500, 1500, 1600, 1500, 1800, 1100, 1000, 1000])
-                time.sleep(2)
-                self.ppm.update_ppm_channels([1500, 1500, 1500, 1500, 1800, 1100, 1000, 1000])
-                
-                self.update_ppm = True     
-                self.update_pids = True
-                self.start()
-                
-            vals = [int(self.rollPID.output_ppm),1500, int(self.throttlePID.output_ppm), 1500, 1800, 1100, 1000, 1000]
-            self.ppm.update_ppm_channels(vals)
-            print(vals)
-        else:
-            self.first_start = True
-            self.ppm.update_ppm_channels([1500, 1500, 1000, 1500, 1100, 1800, 1000, 1000])
-            print("all ppm to lowest value")
+        if not Values.WINDOWS_TESTS:
+            if self.update_ppm:
+                #
+                if (int(self.throttlePID.output_ppm) != self.last_throttle_ppm) or \
+                        (int(self.rollPID.output_ppm) != self.last_roll_ppm) or \
+                        (int(self.yawPID.output_ppm) != self.last_yaw_ppm):
+
+                    self.last_yaw_ppm = int(self.yawPID.output_ppm)
+                    self.last_roll_ppm = int(self.rollPID.output_ppm)
+                    self.last_throttle_ppm = int(self.throttlePID.output_ppm)
+
+                    if self.first_start:
+                        self.stop()
+                        self.first_start = False
+                        self.ppm.update_ppm_channels([1500, 1500, 1000, 1500, 1100, 1800, 1000, 1000])
+                        time.sleep(2)
+                        self.ppm.update_ppm_channels([1500, 1500, 1000, 1500, 1800, 1800, 1000, 1000])
+                        time.sleep(2)
+                        self.ppm.update_ppm_channels([1500, 1500, 1000, 1500, 1800, 1100, 1000, 1000])
+                        time.sleep(2)
+                        self.ppm.update_ppm_channels([1500, 1500, 1600, 1500, 1800, 1100, 1000, 1000])
+                        time.sleep(2)
+                        self.ppm.update_ppm_channels([1500, 1500, 1500, 1500, 1800, 1100, 1000, 1000])
+
+                        self.update_ppm = True
+                        self.update_pids = True
+                        self.start()
+
+                    vals = [int(self.rollPID.output_ppm), 1500, int(self.throttlePID.output_ppm), 1500, 1800, 1100, 1000,
+                            1000]
+                    self.ppm.update_ppm_channels(vals)
+                    #print(vals)
+
+            else:
+
+                if not self.first_start:
+                    self.ppm.update_ppm_channels([1500, 1500, 1000, 1500, 1100, 1800, 1000, 1000])
+                self.first_start = True
 
     def calculate_pids(self):
         if self.update_pids:
@@ -139,9 +158,11 @@ class multiPIDs:
         self._timer = None
         self.dt = ps.PID_PPM_UPDATE_TIME
         self.is_running = False
-        self.ppm = My_PPM()
+        if not Values.WINDOWS_TESTS:
+            self.ppm = My_PPM()
         self.update_ppm = False
         self.update_pids = False
+        self.first_start = True
         values = self.get_pid_values()
 
         self.yawPID = PID(ps.YAW_SETPOINT, 1000, 2000, float(values[0][0]), float(values[1][0]), float(values[2][0]))
@@ -156,9 +177,9 @@ class multiPIDs:
 
         if Values.WRITE_TO_FILE:
             self.file = open('inputs_outputs.csv', 'a')
-
+        if not Values.WINDOWS_TESTS:
+            self.ppm.update_ppm_channels([1500, 1500, 1000, 1500, 1100, 1800, 1000, 1000])
         self.start()
-
 
     def start(self):
         if not self.is_running:
@@ -177,30 +198,52 @@ class multiPIDs:
     def stop(self):
         self._timer.cancel()
         self.is_running = False
-
         self.update_ppm = False         ################## ??????????? moze cos byc  nie tak
         self.update_pids = False
-        self.ppm.update_ppm_channels([1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000])
+        if not Values.WINDOWS_TESTS:
+            self.ppm.update_ppm_channels([1500, 1500, 1000, 1500, 1100, 1800, 1000, 1000])
         if Values.WRITE_TO_FILE:
             self.file.close()
 
     def send_ppm(self):
-        if self.update_ppm:
-            if (int(self.throttlePID.output_ppm) != self.last_throttle_ppm) or \
-                    (int(self.rollPID.output_ppm) != self.last_roll_ppm) or \
-                    (int(self.yawPID.output_ppm) != self.last_yaw_ppm):
-                self.last_yaw_ppm = int(self.yawPID.output_ppm)
-                self.last_roll_ppm = int(self.rollPID.output_ppm)
-                self.last_throttle_ppm = int(self.throttlePID.output_ppm)
+        if not Values.WINDOWS_TESTS:
+            if self.update_ppm:
+                #
+                if (int(self.throttlePID.output_ppm) != self.last_throttle_ppm) or \
+                        (int(self.rollPID.output_ppm) != self.last_roll_ppm) or \
+                        (int(self.yawPID.output_ppm) != self.last_yaw_ppm):
 
-                vals = [self.last_throttle_ppm, self.last_yaw_ppm, self.last_roll_ppm, 1500, 1000, 1000, 1000, 1000]
-                self.ppm.update_ppm_channels(vals)
-                print(vals)
+                    self.last_yaw_ppm = int(self.yawPID.output_ppm)
+                    self.last_roll_ppm = int(self.rollPID.output_ppm)
+                    self.last_throttle_ppm = int(self.throttlePID.output_ppm)
 
-                msg = "v" + str(self.last_yaw_ppm) + "," + str(self.last_roll_ppm) + "," + str(self.last_throttle_ppm)
-                self.child_conn.send(msg)
-        else:
-            print("all ppm to lowest value")
+                    if self.first_start:
+                        self.stop()
+                        self.first_start = False
+                        self.ppm.update_ppm_channels([1500, 1500, 1000, 1500, 1100, 1800, 1000, 1000])
+                        time.sleep(2)
+                        self.ppm.update_ppm_channels([1500, 1500, 1000, 1500, 1800, 1800, 1000, 1000])
+                        time.sleep(2)
+                        self.ppm.update_ppm_channels([1500, 1500, 1000, 1500, 1800, 1100, 1000, 1000])
+                        time.sleep(2)
+                        self.ppm.update_ppm_channels([1500, 1500, 1600, 1500, 1800, 1100, 1000, 1000])
+                        time.sleep(2)
+                        self.ppm.update_ppm_channels([1500, 1500, 1500, 1500, 1800, 1100, 1000, 1000])
+
+                        self.update_ppm = True
+                        self.update_pids = True
+                        self.start()
+
+                    vals = [int(self.rollPID.output_ppm), 1500, int(self.throttlePID.output_ppm), 1500, 1800, 1100, 1000, 1000]
+                    self.ppm.update_ppm_channels(vals)
+
+                    msg = "v" + str(self.last_yaw_ppm) + "," + str(self.last_roll_ppm) + "," + str(self.last_throttle_ppm)
+                    self.child_conn.send(msg)
+            else:
+
+                if not self.first_start:
+                    self.ppm.update_ppm_channels([1500, 1500, 1000, 1500, 1100, 1800, 1000, 1000])
+                self.first_start = True
 
     def calculate_pids(self):
         if self.update_pids:

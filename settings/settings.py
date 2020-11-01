@@ -3,11 +3,11 @@ import os
 
 class Values:
 
-    MODEL_PATH = os.path.join('models', 'AIRacer_edgetpu.tflite')
-    LABEL_PATH = os.path.join('models', 'labelmap.txt')
-    DETECTION_THRESHOLD = 0.61
+    MODEL_PATH = os.path.join('models', 'AIRacer_FPV.tflite')
 
-    USE_EDGE_TPU = True
+    DETECTION_THRESHOLD = 0.499  #0.61
+
+    USE_EDGE_TPU = False
     PRINT_FPS = True
     SEND_IMAGES_WIFI = False
     SENT_IMAGES_SIZE = (200, 200)
@@ -16,6 +16,8 @@ class Values:
     REMOTE_CONTROL = False
 
     WRITE_TO_FILE = False
+
+    WINDOWS_TESTS = True
 
     CAMERA = 0
     CAMERA_WIDTH = 720
@@ -32,8 +34,9 @@ class Values:
 
 
 class PIDSettings:
-    PID_PPM_UPDATE_TIME = 1
-    PID_I_MAX = 500
+    PID_PPM_UPDATE_TIME = 0.03
+
+    PID_I_MAX = 400
 
     # used in detector to set default values
     THROTTLE_SETPOINT = 0
@@ -44,8 +47,8 @@ class PIDSettings:
 
 
 class Constants:
-    RD = 3
-    RU = 0
-    LD = 4
-    LU = 1
+    RD = 4
+    RU = 1
+    LD = 3
+    LU = 0
     GATE = 2

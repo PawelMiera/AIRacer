@@ -11,7 +11,7 @@ class MainLoop(Thread):
 
     def __init__(self):
         Thread.__init__(self)
-        self.detector = Detector(Values.MODEL_PATH, Values.LABEL_PATH)
+        self.detector = Detector(Values.MODEL_PATH)
         self.camera = Camera2()
         self.pids = PIDs()
         self.stop_loop = False

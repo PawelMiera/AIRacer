@@ -88,13 +88,17 @@ class ImageWindow(QMainWindow):
         self.update_button.clicked.connect(self.on_click_update)
         self.layout.addWidget(self.update_button, 5, 1)
 
-        self.start_button = QPushButton("Start")
+        self.start_button = QPushButton("Start PIDs and PPM")
         self.start_button.clicked.connect(self.on_click_start)
         self.layout.addWidget(self.start_button, 5, 2)
 
         self.stop_button = QPushButton("Stop")
         self.stop_button.clicked.connect(self.on_click_stop)
         self.layout.addWidget(self.stop_button, 5, 3)
+
+        self.stop_button = QPushButton("Start PIDs")
+        self.stop_button.clicked.connect(self.on_click_update_pids)
+        self.layout.addWidget(self.stop_button, 6, 1)
 
         self.displays.addWidget(self.disp)
 
@@ -129,6 +133,10 @@ class ImageWindow(QMainWindow):
     @pyqtSlot()
     def on_click_stop(self):
         self.pid_stop()
+
+    @pyqtSlot()
+    def on_click_update_pids(self):
+        self.main_loop.pids.update_pids = True
 
     def pid_start(self):
         self.main_loop.pids.update_ppm = True

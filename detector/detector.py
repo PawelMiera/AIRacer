@@ -5,16 +5,11 @@ import numpy as np
 
 
 class Detector:
-    def __init__(self, model_path, labels_path):
-        with open(labels_path, 'r') as f:
-            self.labels = [line.strip() for line in f.readlines()]
-
-        if self.labels[0] == '???':
-            del (self.labels[0])
+    def __init__(self, model_path):
 
         if Values.WINDOWS_GPU:
             import tensorflow as tf
-            self.interpreter = tf.lite.Interpreter(model_path=model_path, num_threads=12)
+            self.interpreter = tf.lite.Interpreter(model_path=model_path)
 
         else:
             pkg = importlib.util.find_spec('tflite_runtime')
@@ -67,7 +62,19 @@ class Detector:
                 good_classes.append(classes[i])
                 cv2.rectangle(frame, (xmin, ymin), (xmax, ymax), (10, 255, 0), 2)
 
-                object_name = self.labels[int(classes[i])]
+                object_name = ""
+                object_class = int(classes[i])
+                if object_class == Constants.GATE:
+                    object_name = "Gate"
+                elif object_class == Constants.RD:
+                    object_name = "RD"
+                elif object_class == Constants.RU:
+                    object_name = "RU"
+                elif object_class == Constants.LD:
+                    object_name = "LD"
+                elif object_class == Constants.LU:
+                    object_name = "LU"
+
                 label = '%s: %d%%' % (object_name, int(scores[i] * 100))
                 labelSize, baseLine = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 0.7, 2)
                 label_ymin = max(ymin, labelSize[1] + 10)
