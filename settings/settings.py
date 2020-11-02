@@ -3,12 +3,12 @@ import os
 
 class Values:
 
-    MODEL_PATH = os.path.join('models', 'AIRacer_FPV_edgetpu.tflite')
+    MODEL_PATH = os.path.join('models', 'AIRacer_FPV_corners.tflite')
 
     DETECTION_THRESHOLD = 0.499  #0.61
 
     USE_EDGE_TPU = True
-    PRINT_FPS = True
+    PRINT_FPS = False
     SEND_IMAGES_WIFI = False
     SENT_IMAGES_SIZE = (200, 200)
     WINDOWS_GPU = False
@@ -38,7 +38,6 @@ class PIDSettings:
 
     PID_I_MAX = 400
 
-    # used in detector to set default values
     THROTTLE_SETPOINT = 0
 
     ROLL_SETPOINT = 0
@@ -47,8 +46,9 @@ class PIDSettings:
 
 
 class Constants:
-    RD = 4
-    RU = 1
-    LD = 3
-    LU = 0
-    GATE = 2
+    RD = 3
+    RU = 0
+    LD = 4
+    LU = 1
+    CORNERS = 1
+    GATE = 0

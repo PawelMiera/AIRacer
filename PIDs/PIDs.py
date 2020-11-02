@@ -20,7 +20,6 @@ class PIDs:
         self.update_pids = False
         self.first_start = True
         values = self.get_pid_values()
-
         self.yawPID = PID(ps.YAW_SETPOINT, 1000, 2000, float(values[0][0]), float(values[1][0]), float(values[2][0]))
         self.rollPID = PID(ps.ROLL_SETPOINT, 1000, 2000, float(values[0][1]), float(values[1][1]), float(values[2][1]))
         self.throttlePID = PID(ps.THROTTLE_SETPOINT, 1000, 2000, float(values[0][2]), float(values[1][2]), float(values[2][2]))
@@ -84,7 +83,7 @@ class PIDs:
                         time.sleep(2)
                         self.ppm.update_ppm_channels([1500, 1500, 1000, 1500, 1800, 1100, 1000, 1000])
                         time.sleep(2)
-                        self.ppm.update_ppm_channels([1500, 1500, 1750, 1500, 1800, 1100, 1000, 1000])
+                        self.ppm.update_ppm_channels([1500, 1500, 1780, 1500, 1800, 1100, 1000, 1000])
                         time.sleep(1)
                         self.ppm.update_ppm_channels([1500, 1500, 1500, 1500, 1800, 1100, 1000, 1000])
 
@@ -92,10 +91,10 @@ class PIDs:
                         self.update_pids = True
                         self.start()
 
-                    vals = [int(self.rollPID.output_ppm), 1500, int(self.throttlePID.output_ppm), 1500, 1800, 1100, 1000,
+                    vals = [int(self.rollPID.output_ppm), 1500, int(self.throttlePID.output_ppm), int(self.yawPID.output_ppm), 1800, 1100, 1000,
                             1000]
                     self.ppm.update_ppm_channels(vals)
-                    #print(vals)  int(self.yawPID.output_ppm)
+                    #print(vals)
 
             else:
 
@@ -119,6 +118,8 @@ class PIDs:
         out_min = -1
         mid[0] = (mid[0] - in_min) * (out_max - out_min) / (in_max - in_min) + out_min
         mid[1] = -((mid[1] - in_min) * (out_max - out_min) / (in_max - in_min) + out_min)
+        if mid[0] < 0:
+            ratio *= -1
         self.yawPID.update(-ratio)
         self.rollPID.update(-mid[0])
         self.throttlePID.update(-mid[1])
@@ -263,6 +264,7 @@ class multiPIDs:
         out_min = -1
         mid[0] = (mid[0] - in_min) * (out_max - out_min) / (in_max - in_min) + out_min
         mid[1] = -((mid[1] - in_min) * (out_max - out_min) / (in_max - in_min) + out_min)
+
         self.yawPID.update(ratio)
         self.rollPID.update(mid[0])
         self.throttlePID.update(-mid[1])

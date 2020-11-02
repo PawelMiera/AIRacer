@@ -1,5 +1,5 @@
 from threading import Thread
-from detector.detector import Detector
+from detector.detector3 import Detector
 from settings.settings import Values
 from camera.camera import Camera2
 from PIDs.PIDs import PIDs
@@ -36,6 +36,7 @@ class MainLoop(Thread):
                     break
 
                 self.frame = self.camera.get_frame()
+                self.frame = cv2.imread("3.png")
 
                 if self.frame is None:
                     continue

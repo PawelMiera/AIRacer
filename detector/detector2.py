@@ -35,7 +35,7 @@ class Detector:
         self.img_ind = 0
         print("Model init success!")
         
-        self.frame = cv2.imread("images/start.jpg")
+        self.frame = cv2.imread("../images/start.jpg")
 
     def detect(self, frame):
         image = cv2.resize(frame, (self.width, self.height))
@@ -60,10 +60,16 @@ class Detector:
                 good_boxes.append(boxes[i])
                 good_scores.append(scores[i])
                 good_classes.append(classes[i])
-                cv2.rectangle(frame, (xmin, ymin), (xmax, ymax), (10, 255, 0), 2)
 
                 object_name = ""
                 object_class = int(classes[i])
+
+                hsv = np.uint8([[[61 + (object_class-2)*25, 255, 255]]])
+                rgb = cv2.cvtColor(hsv, cv2.COLOR_HSV2BGR)
+                col = (int(rgb[0][0][0]), int(rgb[0][0][1]), int(rgb[0][0][2]))
+
+                cv2.rectangle(frame, (xmin, ymin), (xmax, ymax), col, 2)
+
                 if object_class == Constants.GATE:
                     object_name = "Gate"
                 elif object_class == Constants.RD:
@@ -169,7 +175,9 @@ class Detector:
             if corners == 4:
                 width = (boxes[RU][3] + boxes[RD][3]) / 2 - (boxes[LU][1] + boxes[LD][1]) / 2
                 height = (boxes[LD][2] + boxes[RD][2]) / 2 - (boxes[RU][0] + boxes[LU][0]) / 2
+                print("4444")
             elif corners == 3:
+                print("3333")
                 if LD == -1:
                     y_min = (boxes[LU][0] + boxes[RU][0]) / 2
                     y_max = boxes[RD][2]
@@ -203,6 +211,7 @@ class Detector:
                     
             elif corners == 2:
                 if LD == -1 and RU == -1:
+                    print("2222")
                     x_min = boxes[LU][1]
                     x_max = boxes[RD][3]
                     y_min = boxes[LU][0]
@@ -210,14 +219,13 @@ class Detector:
                     width = x_max - x_min
                     height = y_max - y_min
                 elif LU == -1 and RD == -1:
+                    print("2222")
                     x_min = boxes[LD][1]
                     x_max = boxes[RU][3]
                     y_min = boxes[RU][0]
                     y_max = boxes[LD][2]
                     width = x_max - x_min
                     height = y_max - y_min
-                                                              
-                
 
         elif Gate_score == 0 and corners == 1:
             if LU != -1:
@@ -351,7 +359,7 @@ class Detector:
                 sides_ratio = 1
             elif sides_ratio < -1:
                 sides_ratio = -1
-        
+        print("hw ", height, width)
         if mid is not None:
             if mid[0] > 1:
                 mid[0] = 1
@@ -362,7 +370,5 @@ class Detector:
                 mid[1] = 1
             elif mid[1] < 0:
                 mid[1] = 0
-
-
 
         return mid, sides_ratio
