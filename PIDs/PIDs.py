@@ -60,6 +60,8 @@ class PIDs:
             self.ppm.update_ppm_channels([1500, 1500, 1000, 1500, 1100, 1800, 1000, 1000])
         if Values.WRITE_TO_FILE:
             self.file.close()
+        time.sleep(0.1)
+        self.first_start = True
 
     def send_ppm(self):
         if not Values.WINDOWS_TESTS:
@@ -82,8 +84,8 @@ class PIDs:
                         time.sleep(2)
                         self.ppm.update_ppm_channels([1500, 1500, 1000, 1500, 1800, 1100, 1000, 1000])
                         time.sleep(2)
-                        self.ppm.update_ppm_channels([1500, 1500, 1600, 1500, 1800, 1100, 1000, 1000])
-                        time.sleep(2)
+                        self.ppm.update_ppm_channels([1500, 1500, 1750, 1500, 1800, 1100, 1000, 1000])
+                        time.sleep(1)
                         self.ppm.update_ppm_channels([1500, 1500, 1500, 1500, 1800, 1100, 1000, 1000])
 
                         self.update_ppm = True
@@ -93,12 +95,11 @@ class PIDs:
                     vals = [int(self.rollPID.output_ppm), 1500, int(self.throttlePID.output_ppm), 1500, 1800, 1100, 1000,
                             1000]
                     self.ppm.update_ppm_channels(vals)
-                    #print(vals)
+                    #print(vals)  int(self.yawPID.output_ppm)
 
             else:
 
-                if not self.first_start:
-                    self.ppm.update_ppm_channels([1500, 1500, 1000, 1500, 1100, 1800, 1000, 1000])
+                self.ppm.update_ppm_channels([1500, 1500, 1000, 1500, 1100, 1800, 1000, 1000])
                 self.first_start = True
 
     def calculate_pids(self):

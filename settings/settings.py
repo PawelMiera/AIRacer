@@ -20,11 +20,11 @@ class Values:
     WINDOWS_TESTS = False
 
     CAMERA = 0
-    CAMERA_WIDTH = 720
+    CAMERA_WIDTH = 640
     CAMERA_HEIGHT = 480
     FPS = 122
 
-    PPM_PIN = 12
+    PPM_PIN = 21
 
     REMOTE_IP = "192.168.31.15"
     TCP_PORT = 6969

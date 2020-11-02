@@ -90,11 +90,11 @@ class ImageWindow(QMainWindow):
 
         self.start_button = QPushButton("Start PIDs and PPM")
         self.start_button.clicked.connect(self.on_click_start)
-        self.layout.addWidget(self.start_button, 5, 2)
+        self.layout.addWidget(self.start_button, 6, 2)
 
         self.stop_button = QPushButton("Stop")
         self.stop_button.clicked.connect(self.on_click_stop)
-        self.layout.addWidget(self.stop_button, 5, 3)
+        self.layout.addWidget(self.stop_button, 6, 3)
 
         self.stop_button = QPushButton("Start PIDs")
         self.stop_button.clicked.connect(self.on_click_update_pids)

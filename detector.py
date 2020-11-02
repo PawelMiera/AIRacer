@@ -89,8 +89,8 @@ class Detector:
             in_max = 1
             out_max = 1
             out_min = 0
-            a = (PIDSettings.ROLL_SETPOINT - in_min) * (out_max - out_min) / (in_max - in_min) + out_min
-            b = ((PIDSettings.THROTTLE_SETPOINT - in_min) * (out_max - out_min) / (in_max - in_min) + out_min)
+            a = (PIDSettings.THROTTLE_SETPOINT - in_min) * (out_max - out_min) / (in_max - in_min) + out_min
+            b = ((PIDSettings.ROLL_SETPOINT - in_min) * (out_max - out_min) / (in_max - in_min) + out_min)
             mid = [a, b]
 
         if ratio is None:
@@ -115,6 +115,7 @@ class Detector:
         mid = None
         width = None
         height = None
+        sides_ratio = None
 
         for i in range(len(scores)):
             if classes[i] == Constants.LD:
@@ -164,8 +165,59 @@ class Detector:
             max_x = boxes[Gate][3]
             min_x = boxes[Gate][1]
             mid = [min_x + (max_x - min_x) / 2, min_y + (max_y - min_y) / 2]
-            width = max_x - min_x
-            height = max_y - min_y
+
+            if corners == 4:
+                width = (boxes[RU][3] + boxes[RD][3]) / 2 - (boxes[LU][1] + boxes[LD][1]) / 2
+                height = (boxes[LD][2] + boxes[RD][2]) / 2 - (boxes[RU][0] + boxes[LU][0]) / 2
+            elif corners == 3:
+                if LD == -1:
+                    y_min = (boxes[LU][0] + boxes[RU][0]) / 2
+                    y_max = boxes[RD][2]
+                    x_max = (boxes[RU][3] + boxes[RD][3]) / 2
+                    x_min = boxes[LU][1]
+                    width = x_max - x_min
+                    height = y_max - y_min
+                    
+                elif LU == -1:
+                    y_min = boxes[RU][0]
+                    y_max = (boxes[LD][2] + boxes[RD][2]) / 2
+                    x_max = (boxes[RU][3] + boxes[RD][3]) / 2
+                    x_min = boxes[LD][1]
+                    width = x_max - x_min
+                    height = y_max - y_min
+
+                elif RU == -1:
+                    y_min = boxes[LU][0]
+                    y_max = (boxes[LD][2] + boxes[RD][2]) / 2
+                    x_max = boxes[RD][3]
+                    x_min = (boxes[LD][1] + boxes[LU][1]) / 2
+                    width = x_max - x_min
+                    height = y_max - y_min
+                elif RD == -1:
+                    y_min = (boxes[LU][0] + boxes[RU][0]) / 2
+                    y_max = boxes[LD][2]
+                    x_max = boxes[RU][3]
+                    x_min = (boxes[LD][1] + boxes[LU][1]) / 2
+                    width = x_max - x_min
+                    height = y_max - y_min
+                    
+            elif corners == 2:
+                if LD == -1 and RU == -1:
+                    x_min = boxes[LU][1]
+                    x_max = boxes[RD][3]
+                    y_min = boxes[LU][0]
+                    y_max = boxes[RD][2]
+                    width = x_max - x_min
+                    height = y_max - y_min
+                elif LU == -1 and RD == -1:
+                    x_min = boxes[LD][1]
+                    x_max = boxes[RU][3]
+                    y_min = boxes[RU][0]
+                    y_max = boxes[LD][2]
+                    width = x_max - x_min
+                    height = y_max - y_min
+                                                              
+                
 
         elif Gate_score == 0 and corners == 1:
             if LU != -1:
@@ -285,28 +337,32 @@ class Detector:
                     width = x_max - x_min
                     height = y_max - y_min
 
-        height *= Values.CAMERA_HEIGHT
-        width *= Values.CAMERA_WIDTH
-        sides_ratio = height - width
+        if height is not None and width is not None:
+            height *= Values.CAMERA_HEIGHT
+            width *= Values.CAMERA_WIDTH
+            sides_ratio = height - width
 
-        if height >= width:
-            sides_ratio /= height
-        else:
-            sides_ratio /= width
+            if height >= width:
+                sides_ratio /= height
+            else:
+                sides_ratio /= width
+                
+            if sides_ratio > 1:
+                sides_ratio = 1
+            elif sides_ratio < -1:
+                sides_ratio = -1
+        
+        if mid is not None:
+            if mid[0] > 1:
+                mid[0] = 1
+            elif mid[0] < 0:
+                mid[0] = 0
 
-        if mid[0] > 1:
-            mid[0] = 1
-        elif mid[0] < 0:
-            mid[0] = 0
+            if mid[1] > 1:
+                mid[1] = 1
+            elif mid[1] < 0:
+                mid[1] = 0
 
-        if mid[1] > 1:
-            mid[1] = 1
-        elif mid[1] < 0:
-            mid[1] = 0
 
-        if sides_ratio > 1:
-            sides_ratio = 1
-        elif sides_ratio < -1:
-            sides_ratio = -1
 
         return mid, sides_ratio
