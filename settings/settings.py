@@ -11,7 +11,6 @@ class Values:
     PRINT_FPS = False
     SEND_IMAGES_WIFI = False
     SENT_IMAGES_SIZE = (200, 200)
-    WINDOWS_GPU = False
 
     REMOTE_CONTROL = False
 
