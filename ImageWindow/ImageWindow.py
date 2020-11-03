@@ -143,8 +143,8 @@ class ImageWindow(QMainWindow):
         self.main_loop.pids.update_pids = True
 
     def pid_stop(self):
-        self.main_loop.pids.update_ppm = False
-        self.main_loop.pids.update_pids = False
+        self.main_loop.pids.land()
+
 
     def start(self):
         self.timer = QTimer(self)
