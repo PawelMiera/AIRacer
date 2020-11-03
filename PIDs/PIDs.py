@@ -59,7 +59,7 @@ class PIDs:
             self.ppm.update_ppm_channels([1500, 1500, 1000, 1500, 1100, 1800, 1000, 1000])
         if Values.WRITE_TO_FILE:
             self.file.close()
-        time.sleep(0.1)
+        time.sleep(0.2)
         self.first_start = True
 
     def send_ppm(self):
@@ -76,25 +76,39 @@ class PIDs:
 
                     if self.first_start:
                         self.stop()
+                        
                         self.first_start = False
                         self.ppm.update_ppm_channels([1500, 1500, 1000, 1500, 1100, 1800, 1000, 1000])
-                        time.sleep(2)
+                        time.sleep(3)
                         self.ppm.update_ppm_channels([1500, 1500, 1000, 1500, 1800, 1800, 1000, 1000])
-                        time.sleep(2)
+                        time.sleep(3)
                         self.ppm.update_ppm_channels([1500, 1500, 1000, 1500, 1800, 1100, 1000, 1000])
+                        time.sleep(3)
+                        self.ppm.update_ppm_channels([1500, 1500, 1750, 1500, 1800, 1100, 1000, 1000])
+                        print("gora")
                         time.sleep(2)
-                        self.ppm.update_ppm_channels([1500, 1500, 1780, 1500, 1800, 1100, 1000, 1000])
-                        time.sleep(1)
                         self.ppm.update_ppm_channels([1500, 1500, 1500, 1500, 1800, 1100, 1000, 1000])
+                        print("stop")
+                        """time.sleep(5)
+                        self.ppm.update_ppm_channels([1800, 1500, 1500, 1500, 1800, 1100, 1000, 1000])
+                        print("prawo")
+                        time.sleep(3)
+                        self.ppm.update_ppm_channels([1300, 1500, 1500, 1500, 1800, 1100, 1000, 1000])
+                        print("lewo")
+                        time.sleep(3)
+                        self.ppm.update_ppm_channels([1500, 1500, 1500, 1500, 1800, 1100, 1000, 1000])   """
 
                         self.update_ppm = True
                         self.update_pids = True
                         self.start()
-
-                    vals = [int(self.rollPID.output_ppm), 1500, int(self.throttlePID.output_ppm), int(self.yawPID.output_ppm), 1800, 1100, 1000,
+                    ax = self.rollPID.output_ppm 
+                    if(int(self.rollPID.output_ppm) > 1510 or int(self.rollPID.output_ppm)< 1490):
+                        ax += 250
+                    vals = [int(ax), 1500, int(self.throttlePID.output_ppm), int(self.yawPID.output_ppm), 1800, 1100, 1000,
                             1000]
                     self.ppm.update_ppm_channels(vals)
                     #print(vals)
+                    # int(self.yawPID.output_ppm)
 
             else:
 

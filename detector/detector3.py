@@ -132,8 +132,8 @@ class Detector:
                 corners_scores[ind] = 0
                 best_corners.append(corners[ind])
                 corners_score += c_s[i]
-
-        corners_score /= len(best_corners)
+        if len(best_corners) >0:
+            corners_score /= len(best_corners)
 
         if Gate_score == 0 and corners_score == 0:
             return None, None
