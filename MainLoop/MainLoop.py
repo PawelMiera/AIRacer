@@ -36,7 +36,6 @@ class MainLoop(Thread):
                     break
 
                 self.frame = self.camera.get_frame()
-                self.frame = cv2.imread("3.png")
 
                 if self.frame is None:
                     continue
