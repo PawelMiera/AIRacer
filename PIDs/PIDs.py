@@ -61,7 +61,7 @@ class PIDs:
             self.ppm.update_ppm_channels([1500, 1500, 1000, 1500, 1100, 1800, 1000, 1000])
 
     def stop(self):
-        print("Stopping!!")
+        print("Closing pids!")
         self._timer.cancel()
         self.is_running = False
         self.update_ppm = False         ################## ??????????? moze cos byc  nie tak
@@ -82,16 +82,14 @@ class PIDs:
                 self.starting = True
                 self.update_ppm = False
                 self.ppm.update_ppm_channels([1500, 1500, 1000, 1500, 1100, 1800, 1000, 1000])
-                time.sleep(3)
+                time.sleep(1)
                 self.ppm.update_ppm_channels([1500, 1500, 1000, 1500, 1800, 1800, 1000, 1000])
-                time.sleep(3)
+                time.sleep(1)
                 self.ppm.update_ppm_channels([1500, 1500, 1000, 1500, 1800, 1100, 1000, 1000])
-                time.sleep(3)
+                time.sleep(1)
                 self.ppm.update_ppm_channels([1500, 1500, 1750, 1500, 1800, 1100, 1000, 1000])
-                print("gora")
-                time.sleep(2)
+                time.sleep(2.8)
                 self.ppm.update_ppm_channels([1500, 1500, 1500, 1500, 1800, 1100, 1000, 1000])
-                print("stop")
 
                 self.update_ppm = True
                 self.starting = False
