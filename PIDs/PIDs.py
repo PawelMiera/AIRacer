@@ -111,7 +111,6 @@ class PIDs:
             throttle = int(self.throttlePID.output_ppm)
 
             if not self.hold_possition:
-                print("aaa")
                 pitch = 1600
 
             if (throttle != self.last_throttle_ppm) or \

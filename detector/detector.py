@@ -86,8 +86,8 @@ class Detector:
             in_max = 1
             out_max = 1
             out_min = 0
-            a = (PIDSettings.THROTTLE_SETPOINT - in_min) * (out_max - out_min) / (in_max - in_min) + out_min
-            b = ((PIDSettings.ROLL_SETPOINT - in_min) * (out_max - out_min) / (in_max - in_min) + out_min)
+            a = (PIDSettings.ROLL_SETPOINT - in_min) * (out_max - out_min) / (in_max - in_min) + out_min
+            b = ((PIDSettings.THROTTLE_SETPOINT - in_min) * (out_max - out_min) / (in_max - in_min) + out_min)
             mid = [a, b]
 
         if ratio is None:
@@ -137,9 +137,9 @@ class Detector:
                 corners_score += c_s[i]
         if len(best_corners) >0:
             corners_score /= len(best_corners)
-
-        if Gate_score == 0 and corners_score == 0:
-            return None, None
+            
+        if Gate_score == 0 and (corners_score == 0 or len(best_corners) == 1):
+            return None, None, None
 
         if Gate_score >= corners_score or (Gate_score != 0 and len(best_corners) == 1):
             max_y = boxes[Gate][2]
@@ -233,10 +233,6 @@ class Detector:
 
                     width = x_max - x_min
                     height = y_max - y_min
-
-        elif Gate_score == 0 and len(best_corners) == 1:
-
-            return None, None
 
         else:
             if len(best_corners) == 4:
