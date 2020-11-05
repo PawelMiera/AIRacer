@@ -28,6 +28,7 @@ class PIDs:
         self.last_yaw_ppm = 0
         self.last_roll_ppm = 0
         self.last_throttle_ppm = 0
+        self.last_pitch_ppm = 0
         self.last_time = time.time()
         if Values.WRITE_TO_FILE:
             self.file = open('inputs_outputs.csv', 'a')
@@ -95,11 +96,13 @@ class PIDs:
 
             if (int(self.throttlePID.output_ppm) != self.last_throttle_ppm) or \
                     (int(self.rollPID.output_ppm) != self.last_roll_ppm) or \
-                    (int(self.yawPID.output_ppm) != self.last_yaw_ppm):
+                    (int(self.yawPID.output_ppm) != self.last_yaw_ppm) or \
+                    (int(self.pitchPID.output_ppm) != self.last_pitch_ppm):
 
                 self.last_yaw_ppm = int(self.yawPID.output_ppm)
                 self.last_roll_ppm = int(self.rollPID.output_ppm)
                 self.last_throttle_ppm = int(self.throttlePID.output_ppm)
+                self.last_pitch_ppm = int(self.pitchPID.output_ppm)
 
                 """ax = 
 
