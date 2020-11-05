@@ -29,7 +29,7 @@ class PIDs:
         self.last_yaw_ppm = 0
         self.last_roll_ppm = 0
         self.last_throttle_ppm = 0
-
+        self.last_time = time.time()
         if Values.WRITE_TO_FILE:
             self.file = open('inputs_outputs.csv', 'a')
         if not Values.WINDOWS_TESTS:
@@ -70,7 +70,6 @@ class PIDs:
             self.ppm.update_ppm_channels([1500, 1500, 1000, 1500, 1100, 1800, 1000, 1000])
         if Values.WRITE_TO_FILE:
             self.file.close()
-        time.sleep(0.2)
         self.first_start = True
 
     def send_ppm(self):
@@ -93,6 +92,7 @@ class PIDs:
 
                 self.update_ppm = True
                 self.starting = False
+                print("Started!!")
 
             if (int(self.throttlePID.output_ppm) != self.last_throttle_ppm) or \
                     (int(self.rollPID.output_ppm) != self.last_roll_ppm) or \
