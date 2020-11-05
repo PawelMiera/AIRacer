@@ -39,9 +39,14 @@ class MainLoop(Thread):
 
                 if self.frame is None:
                     continue
+                self.frame = cv2.imread("3.jpg")
 
-                mid, ratio = self.detector.detect(self.frame)  # mid liczony od: lewy gorny rog
-                self.pids.update(mid, ratio)
+
+                mid, ratio, pitch_input = self.detector.detect(self.frame)  # mid liczony od: lewy gorny rog
+                cv2.circle(self.frame, (int(0.1 * 640), int(0.52 * 480)), 1, (0, 0, 255), 2)
+                cv2.circle(self.frame, (int(0.2 * 640), int(0.5* 480)), 1, (0, 0, 255), 12)
+                print(mid)
+                self.pids.update(mid, ratio, pitch_input)
 
                 if Values.SEND_IMAGES_WIFI:
                     self.imageStream.send_image(cv2.resize(self.detector.frame, Values.SENT_IMAGES_SIZE))

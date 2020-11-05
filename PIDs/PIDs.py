@@ -24,8 +24,7 @@ class PIDs:
         self.yawPID = PID(ps.YAW_SETPOINT, 1000, 2000, float(values[0][0]), float(values[1][0]), float(values[2][0]))
         self.rollPID = PID(ps.ROLL_SETPOINT, 1000, 2000, float(values[0][1]), float(values[1][1]), float(values[2][1]))
         self.throttlePID = PID(ps.THROTTLE_SETPOINT, 1000, 2000, float(values[0][2]), float(values[1][2]), float(values[2][2]))
-        #pitchPID = PID(0.5, 1000, 2000, 1, 2, 3)
-
+        self.pitchPID = PID(ps.PITCH_SETPOINT, 1000, 2000, float(values[0][3]), float(values[1][3]), float(values[2][3]))
         self.last_yaw_ppm = 0
         self.last_roll_ppm = 0
         self.last_throttle_ppm = 0
@@ -102,12 +101,12 @@ class PIDs:
                 self.last_roll_ppm = int(self.rollPID.output_ppm)
                 self.last_throttle_ppm = int(self.throttlePID.output_ppm)
 
-                ax = self.rollPID.output_ppm
+                """ax = 
 
                 if int(self.rollPID.output_ppm) > 1510 or int(self.rollPID.output_ppm) < 1490:
-                    ax += 250
-                vals = [int(ax), 1500, int(self.throttlePID.output_ppm), int(self.yawPID.output_ppm), 1800, 1100, 1000,
-                        1000]
+                    ax += 250"""
+                vals = [int(self.rollPID.output_ppm), int(self.pitchPID.output_ppm), int(self.throttlePID.output_ppm),
+                        int(self.yawPID.output_ppm), 1800, 1100, 1000, 1000]
                 self.ppm.update_ppm_channels(vals)
 
     def calculate_pids(self):
@@ -115,12 +114,14 @@ class PIDs:
             self.yawPID.calculate()
             self.throttlePID.calculate()
             self.rollPID.calculate()
+            self.pitchPID.calculate()
         else:
             self.yawPID.reset()
             self.rollPID.reset()
             self.throttlePID.reset()
+            self.pitchPID.reset()
 
-    def update(self, mid, ratio):
+    def update(self, mid, ratio, pitch_input):
         in_min = 0
         in_max = 1
         out_max = 1
@@ -132,6 +133,7 @@ class PIDs:
         self.yawPID.update(-ratio)
         self.rollPID.update(-mid[0])
         self.throttlePID.update(-mid[1])
+        self.pitchPID.update(pitch_input)
 
     def get_pid_values(self):
         values = []

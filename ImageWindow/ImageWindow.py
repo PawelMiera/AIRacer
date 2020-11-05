@@ -57,12 +57,19 @@ class ImageWindow(QMainWindow):
         self.throttle_I = QLineEdit("7")
         self.throttle_D = QLineEdit("8")
 
+        self.pitch_ppm_label = QLabel("ppm")
+        self.pitch = QLabel("Pitch")
+        self.pitch_P = QLineEdit("9")
+        self.pitch_I = QLineEdit("10")
+        self.pitch_D = QLineEdit("11")
+
         self.layout = QGridLayout()
         self.displays = QVBoxLayout()
 
         self.layout.addWidget(self.yaw_ppm_label, 0, 1)
         self.layout.addWidget(self.roll_ppm_label, 0, 2)
         self.layout.addWidget(self.throttle_ppm_label, 0, 3)
+        self.layout.addWidget(self.pitch_ppm_label, 0, 4)
 
         self.layout.addWidget(P_label, 2, 0)
         self.layout.addWidget(I_label, 3, 0)
@@ -84,21 +91,26 @@ class ImageWindow(QMainWindow):
         self.layout.addWidget(self.throttle_I, 3, 3)
         self.layout.addWidget(self.throttle_D, 4, 3)
 
+        self.layout.addWidget(self.pitch, 1, 4)
+        self.layout.addWidget(self.pitch_P, 2, 4)
+        self.layout.addWidget(self.pitch_I, 3, 4)
+        self.layout.addWidget(self.pitch_D, 4, 4)
+
         self.update_button = QPushButton("Update PID")
         self.update_button.clicked.connect(self.on_click_update)
         self.layout.addWidget(self.update_button, 5, 1)
 
+        self.stop_button = QPushButton("Start PIDs")
+        self.stop_button.clicked.connect(self.on_click_update_pids)
+        self.layout.addWidget(self.stop_button, 5, 2)
+
         self.start_button = QPushButton("Start PIDs and PPM")
         self.start_button.clicked.connect(self.on_click_start)
-        self.layout.addWidget(self.start_button, 6, 2)
+        self.layout.addWidget(self.start_button, 5, 3)
 
         self.stop_button = QPushButton("Stop")
         self.stop_button.clicked.connect(self.on_click_stop)
-        self.layout.addWidget(self.stop_button, 6, 3)
-
-        self.stop_button = QPushButton("Start PIDs")
-        self.stop_button.clicked.connect(self.on_click_update_pids)
-        self.layout.addWidget(self.stop_button, 6, 1)
+        self.layout.addWidget(self.stop_button, 5, 4)
 
         self.displays.addWidget(self.disp)
 
@@ -110,9 +122,9 @@ class ImageWindow(QMainWindow):
 
     @pyqtSlot()
     def on_click_update(self):
-        lines = [self.yaw_P.text() + ',' + self.roll_P.text() + ',' + self.throttle_P.text() + '\n',
-                 self.yaw_I.text() + ',' + self.roll_I.text() + ',' + self.throttle_I.text() + '\n',
-                 self.yaw_D.text() + ',' + self.roll_D.text() + ',' + self.throttle_D.text() + '\n']
+        lines = [self.yaw_P.text() + ',' + self.roll_P.text() + ',' + self.throttle_P.text() + "," + self.pitch_P.text() + '\n',
+                 self.yaw_I.text() + ',' + self.roll_I.text() + ',' + self.throttle_I.text() + "," + self.pitch_I.text() +  '\n',
+                 self.yaw_D.text() + ',' + self.roll_D.text() + ',' + self.throttle_D.text() + "," + self.pitch_D.text() +  '\n']
         with open(os.path.join("settings", "pidValues.csv"), 'w') as fd:
             fd.writelines(lines)
 
@@ -122,9 +134,12 @@ class ImageWindow(QMainWindow):
         self.main_loop.pids.rollPID.Kd = float(self.roll_P.text())
         self.main_loop.pids.rollPID.Ki = float(self.roll_I.text())
         self.main_loop.pids.rollPID.Kd = float(self.roll_D.text())
-        self.main_loop.pids.throttlePID.Kp = float(self.roll_P.text())
-        self.main_loop.pids.throttlePID.Ki = float(self.roll_I.text())
-        self.main_loop.pids.throttlePID.Kd = float(self.roll_D.text())
+        self.main_loop.pids.throttlePID.Kp = float(self.throttle_P.text())
+        self.main_loop.pids.throttlePID.Ki = float(self.throttle_I.text())
+        self.main_loop.pids.throttlePID.Kd = float(self.throttle_D.text())
+        self.main_loop.pids.pitchPID.Kp = float(self.pitch_P.text())
+        self.main_loop.pids.pitchPID.Ki = float(self.pitch_I.text())
+        self.main_loop.pids.pitchPID.Kd = float(self.pitch_D.text())
 
     @pyqtSlot()
     def on_click_start(self):
@@ -155,6 +170,7 @@ class ImageWindow(QMainWindow):
         self.throttle_ppm_label.setText(str(round(self.main_loop.pids.throttlePID.output_ppm, 1)))
         self.yaw_ppm_label.setText(str(round(self.main_loop.pids.yawPID.output_ppm, 1)))
         self.roll_ppm_label.setText(str(round(self.main_loop.pids.rollPID.output_ppm, 1)))
+        self.pitch_ppm_label.setText(str(round(self.main_loop.pids.pitchPID.output_ppm, 1)))
         if image is not None:
             img = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
             disp_size = img.shape[1], img.shape[0]
@@ -186,7 +202,9 @@ class ImageWindow(QMainWindow):
         self.throttle_P.setText(str(self.main_loop.pids.throttlePID.Kp))
         self.throttle_I.setText(str(self.main_loop.pids.throttlePID.Ki))
         self.throttle_D.setText(str(self.main_loop.pids.throttlePID.Kd))
-
+        self.pitch_P.setText(str(self.main_loop.pids.pitchPID.Kp))
+        self.pitch_I.setText(str(self.main_loop.pids.pitchPID.Ki))
+        self.pitch_D.setText(str(self.main_loop.pids.pitchPID.Kd))
 
 class RemoteImageWindow(QMainWindow):
 

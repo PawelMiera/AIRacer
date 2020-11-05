@@ -6,9 +6,6 @@ import numpy as np
 
 class Detector:
     def __init__(self, model_path):
-
-
-
         pkg = importlib.util.find_spec('tflite_runtime')
         if pkg:
             from tflite_runtime.interpreter import Interpreter
@@ -83,7 +80,7 @@ class Detector:
                               (xmin + labelSize[0], label_ymin + baseLine - 10), (255, 255, 255), cv2.FILLED)
                 cv2.putText(frame, label, (xmin, label_ymin - 7), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 0), 2)
 
-        mid, ratio = self.check_detections(good_boxes, good_classes, good_scores, frame)
+        mid, ratio, pitch_input = self.check_detections(good_boxes, good_classes, good_scores)
         if mid is None:
             in_min = -1
             in_max = 1
@@ -95,11 +92,15 @@ class Detector:
 
         if ratio is None:
             ratio = PIDSettings.YAW_SETPOINT
+
+        if pitch_input is None:
+            pitch_input = PIDSettings.PITCH_SETPOINT
+
         cv2.circle(frame, (int(mid[0] * width), int(mid[1] * height)), 15, (0, 0, 255), 2)
         self.frame = frame
-        return mid, ratio
+        return mid, ratio, pitch_input
 
-    def check_detections(self, boxes, classes, scores, frame):
+    def check_detections(self, boxes, classes, scores):
         Gate = -1
         Gate_score = 0
         corners = []
@@ -109,7 +110,10 @@ class Detector:
         mid = None
         width = None
         height = None
+        pitch_height = None
+        pitch_width = None
         sides_ratio = None
+        pitch_input = None
 
         for i in range(len(scores)):
             if classes[i] == Constants.CORNERS:
@@ -143,7 +147,8 @@ class Detector:
             max_x = boxes[Gate][3]
             min_x = boxes[Gate][1]
             mid = [min_x + (max_x - min_x) / 2, min_y + (max_y - min_y) / 2]
-
+            pitch_height = max_y - min_y
+            pitch_width = max_x - min_x
             if len(best_corners) == 4:
                 c0 = [(boxes[best_corners[0]][3], boxes[best_corners[0]][2]), (boxes[best_corners[0]][1], boxes[best_corners[0]][0])]
                 c1 = [(boxes[best_corners[1]][3], boxes[best_corners[1]][2]), (boxes[best_corners[1]][1], boxes[best_corners[1]][0])]
@@ -323,19 +328,30 @@ class Detector:
                     height = y_max - y_min
 
         if height is not None and width is not None:
+            pitch_width = width
+            pitch_height = height
             height *= Values.CAMERA_HEIGHT
             width *= Values.CAMERA_WIDTH
             sides_ratio = height - width
-
             if height >= width:
                 sides_ratio /= height
             else:
                 sides_ratio /= width
-                
+
             if sides_ratio > 1:
                 sides_ratio = 1
             elif sides_ratio < -1:
                 sides_ratio = -1
+
+        if pitch_height is not None and pitch_width is not None:
+            if pitch_height >= pitch_width:
+                pitch_input = 2 * pitch_height - 1          ########## to mozna te 3* edytowac zeby ustalic domyslna odleglosc
+            else:
+                pitch_input = 2 * pitch_width - 1
+            if pitch_input > 1:
+                pitch_input = 1
+            elif pitch_input < -1:
+                pitch_input = -1
 
         if mid is not None:
             if mid[0] > 1:
@@ -348,4 +364,4 @@ class Detector:
             elif mid[1] < 0:
                 mid[1] = 0
 
-        return mid, sides_ratio
+        return mid, sides_ratio, pitch_input
