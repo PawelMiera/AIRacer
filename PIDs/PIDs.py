@@ -30,6 +30,9 @@ class PIDs:
         self.last_throttle_ppm = 0
         self.last_pitch_ppm = 0
         self.last_time = time.time()
+
+        self.hold_possition = True
+
         if Values.WRITE_TO_FILE:
             self.file = open('inputs_outputs.csv', 'a')
         if not Values.WINDOWS_TESTS:
@@ -59,6 +62,14 @@ class PIDs:
         self.first_start = True
         if not Values.WINDOWS_TESTS:
             self.ppm.update_ppm_channels([1500, 1500, 1000, 1500, 1100, 1800, 1000, 1000])
+
+    def go_for_it(self):
+        if self.hold_possition:
+            print("Go go!!")
+            self.hold_possition = False
+        else:
+            print("Please don't go!!")
+            self.hold_possition = True
 
     def stop(self):
         print("Closing pids!")
@@ -94,22 +105,30 @@ class PIDs:
                 self.starting = False
                 print("Started!!")
 
-            if (int(self.throttlePID.output_ppm) != self.last_throttle_ppm) or \
-                    (int(self.rollPID.output_ppm) != self.last_roll_ppm) or \
-                    (int(self.yawPID.output_ppm) != self.last_yaw_ppm) or \
-                    (int(self.pitchPID.output_ppm) != self.last_pitch_ppm):
+            pitch = int(self.pitchPID.output_ppm)
+            yaw = int(self.yawPID.output_ppm)
+            roll = int(self.rollPID.output_ppm)
+            throttle = int(self.throttlePID.output_ppm)
 
-                self.last_yaw_ppm = int(self.yawPID.output_ppm)
-                self.last_roll_ppm = int(self.rollPID.output_ppm)
-                self.last_throttle_ppm = int(self.throttlePID.output_ppm)
-                self.last_pitch_ppm = int(self.pitchPID.output_ppm)
+            if not self.hold_possition:
+                print("aaa")
+                pitch = 1600
+
+            if (throttle != self.last_throttle_ppm) or \
+                    (roll != self.last_roll_ppm) or \
+                    (yaw != self.last_yaw_ppm) or \
+                    (pitch != self.last_pitch_ppm):
+
+                self.last_yaw_ppm = yaw
+                self.last_roll_ppm = roll
+                self.last_throttle_ppm = throttle
+                self.last_pitch_ppm = pitch
 
                 """ax = 
 
                 if int(self.rollPID.output_ppm) > 1510 or int(self.rollPID.output_ppm) < 1490:
                     ax += 250"""
-                vals = [int(self.rollPID.output_ppm), int(self.pitchPID.output_ppm), int(self.throttlePID.output_ppm),
-                        int(self.yawPID.output_ppm), 1800, 1100, 1000, 1000]
+                vals = [roll, pitch, throttle, yaw, 1800, 1100, 1000, 1000]
                 self.ppm.update_ppm_channels(vals)
 
     def calculate_pids(self):

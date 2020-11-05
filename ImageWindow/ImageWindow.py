@@ -102,15 +102,19 @@ class ImageWindow(QMainWindow):
 
         self.stop_button = QPushButton("Start PIDs")
         self.stop_button.clicked.connect(self.on_click_update_pids)
-        self.layout.addWidget(self.stop_button, 5, 2)
+        self.layout.addWidget(self.stop_button, 6, 1)
 
         self.start_button = QPushButton("Start PIDs and PPM")
         self.start_button.clicked.connect(self.on_click_start)
-        self.layout.addWidget(self.start_button, 5, 3)
+        self.layout.addWidget(self.start_button, 6, 2)
+
+        self.update_button = QPushButton("Go")
+        self.update_button.clicked.connect(self.on_click_go)
+        self.layout.addWidget(self.update_button, 6, 3)
 
         self.stop_button = QPushButton("Stop")
         self.stop_button.clicked.connect(self.on_click_stop)
-        self.layout.addWidget(self.stop_button, 5, 4)
+        self.layout.addWidget(self.stop_button, 6, 4)
 
         self.displays.addWidget(self.disp)
 
@@ -142,6 +146,10 @@ class ImageWindow(QMainWindow):
         self.main_loop.pids.pitchPID.Kd = float(self.pitch_D.text())
 
     @pyqtSlot()
+    def on_click_go(self):
+        self.main_loop.pids.go_for_it()
+
+    @pyqtSlot()
     def on_click_start(self):
         self.pid_start()
 
@@ -167,10 +175,10 @@ class ImageWindow(QMainWindow):
         self.timer.start(Values.GUI_UPDATE_MS)
 
     def show_image(self, image, display):
-        self.throttle_ppm_label.setText(str(round(self.main_loop.pids.throttlePID.output_ppm, 1)))
-        self.yaw_ppm_label.setText(str(round(self.main_loop.pids.yawPID.output_ppm, 1)))
-        self.roll_ppm_label.setText(str(round(self.main_loop.pids.rollPID.output_ppm, 1)))
-        self.pitch_ppm_label.setText(str(round(self.main_loop.pids.pitchPID.output_ppm, 1)))
+        self.throttle_ppm_label.setText(str(round(self.main_loop.pids.last_throttle_ppm, 1)))
+        self.yaw_ppm_label.setText(str(round(self.main_loop.pids.last_yaw_ppm, 1)))
+        self.roll_ppm_label.setText(str(round(self.main_loop.pids.last_roll_ppm, 1)))
+        self.pitch_ppm_label.setText(str(round(self.main_loop.pids.last_pitch_ppm, 1)))
         if image is not None:
             img = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
             disp_size = img.shape[1], img.shape[0]
