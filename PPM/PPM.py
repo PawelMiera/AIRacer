@@ -87,7 +87,9 @@ class X:
 class My_PPM:
     def __init__(self):
         self.pi = pigpio.pi()
-
+        
+        self.last_values = [1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500]
+        
         if not self.pi.connected:
             print("Error PPM not working!")
 
@@ -95,11 +97,18 @@ class My_PPM:
 
         self.ppm = X(self.pi, Values.PPM_PIN, frame_ms=20)
 
-        self.update_ppm_channels([1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000])
+        self.update_ppm_channels([1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000]) 
+
         print("PPM started!")
 
     def update_ppm_channels(self, values):
-        self.ppm.update_channels(values)
+        send = False
+        for i in range(len(values)):
+            if values[i] != self.last_values[i]:
+                send = True
+        if send:
+            self.last_values = values
+            self.ppm.update_channels(values)
 
     def stop(self):
         self.ppm.cancel()

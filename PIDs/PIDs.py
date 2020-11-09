@@ -20,15 +20,13 @@ class PIDs:
         self.update_pids = False
         self.first_start = True
         self.starting = False
+        self.slow_landing = False
         values = self.get_pid_values()
         self.yawPID = PID(ps.YAW_SETPOINT, 1000, 2000, float(values[0][0]), float(values[1][0]), float(values[2][0]))
         self.rollPID = PID(ps.ROLL_SETPOINT, 1000, 2000, float(values[0][1]), float(values[1][1]), float(values[2][1]))
         self.throttlePID = PID(ps.THROTTLE_SETPOINT, 1000, 2000, float(values[0][2]), float(values[1][2]), float(values[2][2]))
         self.pitchPID = PID(ps.PITCH_SETPOINT, 1000, 2000, float(values[0][3]), float(values[1][3]), float(values[2][3]))
-        self.last_yaw_ppm = 0
-        self.last_roll_ppm = 0
-        self.last_throttle_ppm = 0
-        self.last_pitch_ppm = 0
+        
         self.last_time = time.time()
 
         self.hold_possition = True
@@ -55,8 +53,18 @@ class PIDs:
         if Values.WRITE_TO_FILE:
             self.write_to_file()
 
+    def slow_land(self):
+        if self.slow_landing:        
+            print("Stopped slow landing!!")
+            self.slow_landing = False
+        else:
+            print("Started slow landing!!")
+            self.slow_landing = True
+
+
     def land(self):
         print("Landing!!")
+        self.slow_landing = False
         self.update_ppm = False
         self.update_pids = False
         self.first_start = True
@@ -91,6 +99,7 @@ class PIDs:
                 self.first_start = False
                 self.starting = True
                 self.update_ppm = False
+                self.slow_landing = False
                 self.ppm.update_ppm_channels([1500, 1500, 1000, 1500, 1100, 1800, 1000, 1000])
                 time.sleep(1)
                 self.ppm.update_ppm_channels([1500, 1500, 1000, 1500, 1800, 1800, 1000, 1000])
@@ -98,11 +107,12 @@ class PIDs:
                 self.ppm.update_ppm_channels([1500, 1500, 1000, 1500, 1800, 1100, 1000, 1000])
                 time.sleep(1)
                 self.ppm.update_ppm_channels([1500, 1500, 1750, 1500, 1800, 1100, 1000, 1000])
-                time.sleep(2.8)
+                time.sleep(1)
                 self.ppm.update_ppm_channels([1500, 1500, 1500, 1500, 1800, 1100, 1000, 1000])
 
                 self.update_ppm = True
                 self.starting = False
+                self.file.write("start \n")
                 print("Started!!")
 
             pitch = int(self.pitchPID.output_ppm)
@@ -112,23 +122,15 @@ class PIDs:
 
             if not self.hold_possition:
                 pitch = 1600
-
-            if (throttle != self.last_throttle_ppm) or \
-                    (roll != self.last_roll_ppm) or \
-                    (yaw != self.last_yaw_ppm) or \
-                    (pitch != self.last_pitch_ppm):
-
-                self.last_yaw_ppm = yaw
-                self.last_roll_ppm = roll
-                self.last_throttle_ppm = throttle
-                self.last_pitch_ppm = pitch
-
-                """ax = 
-
-                if int(self.rollPID.output_ppm) > 1510 or int(self.rollPID.output_ppm) < 1490:
-                    ax += 250"""
-                vals = [roll, pitch, throttle, yaw, 1800, 1100, 1000, 1000]
-                self.ppm.update_ppm_channels(vals)
+            
+            if self.slow_landing:
+                throttle = 1120
+                yaw = 1500
+                pitch = 1500
+                roll = 1500
+            
+            vals = [roll, pitch, throttle, yaw, 1800, 1100, 1000, 1000]
+            self.ppm.update_ppm_channels(vals)
 
     def calculate_pids(self):
         if self.update_pids:
