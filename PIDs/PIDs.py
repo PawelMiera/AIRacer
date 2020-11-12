@@ -113,7 +113,8 @@ class PIDs:
                 self.ppm.update_ppm_channels([1500, 1500, 1500, 1500, 1800, 1100, 1000, 1000])
 
                 self.starting = False
-                self.file.write("start \n")
+                if Values.WRITE_TO_FILE:
+                    self.file.write("start \n")
                 print("Started!!")
 
             pitch = int(self.pitchPID.output_ppm)
@@ -121,19 +122,34 @@ class PIDs:
             roll = int(self.rollPID.output_ppm)
             throttle = int(self.throttlePID.output_ppm)
 
+            roll_with_yaw = yaw - 1500 + roll
+
+            if roll_with_yaw > 2000:
+                roll_with_yaw = 2000
+            elif roll_with_yaw < 1000:
+                roll_with_yaw = 1000
+
             if not self.hold_possition:
                 pitch = 1600
-                
+
             throttle = 1900
             
             if self.slow_landing:
                 throttle = 1120
-                yaw = 1500
+                roll_with_yaw = 1500
                 pitch = 1500
                 roll = 1500
-            
-            vals = [roll, pitch, throttle, roll, 1800, 1100, 1000, 1000]
+
+            vals = [roll_with_yaw, pitch, throttle, roll, 1800, 1100, 1000, 1000]
             self.ppm.update_ppm_channels(vals)
+        else:
+            pitch = int(self.pitchPID.output_ppm)
+            yaw = int(self.yawPID.output_ppm)
+            roll = int(self.rollPID.output_ppm)
+            throttle = int(self.throttlePID.output_ppm)
+
+            roll_with_yaw = yaw - 1500 + roll
+            print(roll_with_yaw, roll, yaw)
 
     def calculate_pids(self):
         if self.update_pids:
@@ -187,5 +203,5 @@ class PIDs:
     def write_to_file(self):
         line = str(self.yawPID.value) + "," + str(self.yawPID.output_ppm) + "," + str(self.rollPID.value) + "," + \
               str(self.rollPID.output_ppm) + "," + str(self.throttlePID.value) + "," + \
-              str(self.throttlePID.output_ppm) + "\n"
+              str(self.throttlePID.output_ppm) + "," + str(self.pitchPID.value) + "," + str(self.pitchPID.output_ppm) + "\n"
         self.file.write(line)
