@@ -342,9 +342,9 @@ class Detector:
 
         if pitch_height is not None and pitch_width is not None:
             if pitch_height >= pitch_width:
-                pitch_input = 2 * pitch_height - 1          ########## to mozna te 3* edytowac zeby ustalic domyslna odleglosc
+                pitch_input = 3 * pitch_height - 1          ########## to mozna te 3* edytowac zeby ustalic domyslna odleglosc
             else:
-                pitch_input = 2 * pitch_width - 1
+                pitch_input = 3 * pitch_width - 1
             if pitch_input > 1:
                 pitch_input = 1
             elif pitch_input < -1:

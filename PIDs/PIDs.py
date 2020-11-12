@@ -68,6 +68,8 @@ class PIDs:
         self.update_ppm = False
         self.update_pids = False
         self.first_start = True
+        self.hold_possition = True
+        self.starting = False
         if not Values.WINDOWS_TESTS:
             self.ppm.update_ppm_channels([1500, 1500, 1000, 1500, 1100, 1800, 1000, 1000])
 
@@ -85,11 +87,12 @@ class PIDs:
         self.is_running = False
         self.update_ppm = False         ################## ??????????? moze cos byc  nie tak
         self.update_pids = False
+        self.first_start = True
         if not Values.WINDOWS_TESTS:
             self.ppm.update_ppm_channels([1500, 1500, 1000, 1500, 1100, 1800, 1000, 1000])
         if Values.WRITE_TO_FILE:
             self.file.close()
-        self.first_start = True
+
 
     def send_ppm(self):
 
@@ -98,7 +101,6 @@ class PIDs:
                 print("Starting sequence!!")
                 self.first_start = False
                 self.starting = True
-                self.update_ppm = False
                 self.slow_landing = False
                 self.ppm.update_ppm_channels([1500, 1500, 1000, 1500, 1100, 1800, 1000, 1000])
                 time.sleep(1)
@@ -106,11 +108,10 @@ class PIDs:
                 time.sleep(1)
                 self.ppm.update_ppm_channels([1500, 1500, 1000, 1500, 1800, 1100, 1000, 1000])
                 time.sleep(1)
-                self.ppm.update_ppm_channels([1500, 1500, 1750, 1500, 1800, 1100, 1000, 1000])
-                time.sleep(1)
+                self.ppm.update_ppm_channels([1500, 1500, 1900, 1500, 1800, 1100, 1000, 1000])
+                time.sleep(5)
                 self.ppm.update_ppm_channels([1500, 1500, 1500, 1500, 1800, 1100, 1000, 1000])
 
-                self.update_ppm = True
                 self.starting = False
                 self.file.write("start \n")
                 print("Started!!")
@@ -122,6 +123,8 @@ class PIDs:
 
             if not self.hold_possition:
                 pitch = 1600
+                
+            throttle = 1900
             
             if self.slow_landing:
                 throttle = 1120
@@ -129,7 +132,7 @@ class PIDs:
                 pitch = 1500
                 roll = 1500
             
-            vals = [roll, pitch, throttle, yaw, 1800, 1100, 1000, 1000]
+            vals = [roll, pitch, throttle, roll, 1800, 1100, 1000, 1000]
             self.ppm.update_ppm_channels(vals)
 
     def calculate_pids(self):

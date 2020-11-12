@@ -38,13 +38,13 @@ class PIDSettings:
     PID_I_MAX = 400
     """wszystkie wartości od 0 do 1"""
 
-    THROTTLE_SETPOINT = 0.4                    #### wieksze wyzej leci
+    THROTTLE_SETPOINT = 0.8                    #### wieksze wyzej leci
 
     ROLL_SETPOINT = 0                            #### wiecej to bramka bardziej po lewej stronie drona
 
     YAW_SETPOINT = 0
 
-    PITCH_SETPOINT = -0.5                     ### wieksze to bliżej bramki
+    PITCH_SETPOINT = 0.4                    ### wieksze to bliżej bramki
 
 
 class Constants:
