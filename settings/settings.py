@@ -3,20 +3,20 @@ import os
 
 class Values:
 
-    MODEL_PATH = os.path.join('models', 'AIRacer_FPV_corners_edgetpu.tflite')
+    MODEL_PATH = os.path.join('models', 'AIRacer_FPV_corners.tflite')
 
     DETECTION_THRESHOLD = 0.499  #0.61
 
-    USE_EDGE_TPU = True
-    PRINT_FPS = False
+    USE_EDGE_TPU = False
+    PRINT_FPS = True
     SEND_IMAGES_WIFI = False
     SENT_IMAGES_SIZE = (200, 200)
 
     REMOTE_CONTROL = False
 
-    WRITE_TO_FILE = True
+    WRITE_TO_FILE = False
 
-    WINDOWS_TESTS = False
+    WINDOWS_TESTS = True
 
     CAMERA = 0
     CAMERA_WIDTH = 640
@@ -33,7 +33,7 @@ class Values:
 
 
 class PIDSettings:
-    PID_PPM_UPDATE_TIME = 0.03
+    PID_PPM_UPDATE_TIME = 1
 
     PID_I_MAX = 400
     """wszystkie wartości od 0 do 1"""
@@ -46,6 +46,9 @@ class PIDSettings:
 
     PITCH_SETPOINT = 0.4                    ### wieksze to bliżej bramki
 
+    SIDES_RATIO_INFLUENCE = 0.5
+    MID_INFLUENCE = 1
+
 
 class Constants:
     RD = 3
@@ -53,4 +56,4 @@ class Constants:
     LD = 4
     LU = 1
     CORNERS = 1
-    GATE = 0
+    GATE = 2

@@ -17,6 +17,7 @@ class MainLoop(Thread):
         self.stop_loop = False
         self.frame = cv2.imread("images/start.jpg")
 
+
         if Values.REMOTE_CONTROL:
             from TCPclient.TCPclient import TCPclient
             self.tcpClient = TCPclient(self.pids)
@@ -36,12 +37,10 @@ class MainLoop(Thread):
                     break
 
                 self.frame = self.camera.get_frame()
-
+                self.frame = cv2.imread("4.jpg")
                 if self.frame is None:
                     continue
-
                 mid, ratio, pitch_input = self.detector.detect(self.frame)  # mid liczony od: lewy gorny rog
-
                 self.pids.update(mid, ratio, pitch_input)
 
                 if Values.SEND_IMAGES_WIFI:
@@ -53,6 +52,7 @@ class MainLoop(Thread):
                         print("FPS:", ind)
                         ind = 0
                         last_time = time.time()
+
         except ValueError as er:
             print("Some error accured: ", str(er))
         except KeyboardInterrupt:

@@ -71,7 +71,8 @@ class Detector:
                     object_name = "Corner"
                 elif object_class == Constants.GATE:
                     object_name = "Gate"
-
+                else:
+                    object_name = "Corner"
                 label = '%s: %d%%' % (object_name, int(scores[i] * 100))
                 labelSize, baseLine = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 0.7, 2)
                 label_ymin = max(ymin, labelSize[1] + 10)
@@ -80,25 +81,46 @@ class Detector:
                               (xmin + labelSize[0], label_ymin + baseLine - 10), (255, 255, 255), cv2.FILLED)
                 cv2.putText(frame, label, (xmin, label_ymin - 7), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 0), 2)
 
-        mid, ratio, pitch_input = self.check_detections(good_boxes, good_classes, good_scores)
+        mid, sides_ratio, pitch_input = self.check_detections(good_boxes, good_classes, good_scores)
+
+        x = None
+        y = None
+
         if mid is None:
-            in_min = -1
-            in_max = 1
-            out_max = 1
-            out_min = 0
-            a = (PIDSettings.ROLL_SETPOINT - in_min) * (out_max - out_min) / (in_max - in_min) + out_min
-            b = ((PIDSettings.THROTTLE_SETPOINT - in_min) * (out_max - out_min) / (in_max - in_min) + out_min)
+            x = PIDSettings.ROLL_SETPOINT
+            y = PIDSettings.THROTTLE_SETPOINT
+        else:
+            x = mid[0]
+            y = mid[1]
+
+        in_min = -1
+        in_max = 1
+        out_max = 1
+        out_min = 0
+        x = (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min
+        y = (y - in_min) * (out_max - out_min) / (in_max - in_min) + out_min
+        cv2.circle(frame, (int(x * width), int(y * height)), 15, (0, 0, 255), 2)
+
+        if sides_ratio is not None:
+            cv2.arrowedLine(frame, (int(width * 0.5), int(height*0.02)), (int(width * 0.5 + sides_ratio*100), int(height*0.02)),
+                            (0, 0, 0), 2, tipLength=0.2)
+        """if mid is None:
+
             mid = [a, b]
 
-        if ratio is None:
+        if ratio is not None:
+            print(int(ratio*100))
+            cv2.arrowedLine(frame, (int(width * 0.5), int(height*0.02)), (int(width * 0.5 + ratio*100), int(height*0.02)),
+                            (0, 0, 0), 2, tipLength=0.2)
+        else:
             ratio = PIDSettings.YAW_SETPOINT
 
         if pitch_input is None:
             pitch_input = PIDSettings.PITCH_SETPOINT
 
-        cv2.circle(frame, (int(mid[0] * width), int(mid[1] * height)), 15, (0, 0, 255), 2)
+        cv2.circle(frame, (int(mid[0] * width), int(mid[1] * height)), 15, (0, 0, 255), 2)"""
         self.frame = frame
-        return mid, ratio, pitch_input
+        return mid, sides_ratio, pitch_input
 
     def check_detections(self, boxes, classes, scores):
         Gate = -1
@@ -327,38 +349,53 @@ class Detector:
         if height is not None and width is not None:
             pitch_width = width
             pitch_height = height
-            height *= Values.CAMERA_HEIGHT
-            width *= Values.CAMERA_WIDTH
-            sides_ratio = height - width
-            if height >= width:
-                sides_ratio /= height
-            else:
-                sides_ratio /= width
-
-            if sides_ratio > 1:
-                sides_ratio = 1
-            elif sides_ratio < -1:
-                sides_ratio = -1
 
         if pitch_height is not None and pitch_width is not None:
             if pitch_height >= pitch_width:
                 pitch_input = 3 * pitch_height - 1          ########## to mozna te 3* edytowac zeby ustalic domyslna odleglosc
             else:
                 pitch_input = 3 * pitch_width - 1
+
+            pitch_input *= -1
+
             if pitch_input > 1:
                 pitch_input = 1
             elif pitch_input < -1:
                 pitch_input = -1
 
         if mid is not None:
+            in_min = 0
+            in_max = 1
+            out_max = 1
+            out_min = -1
+            mid[0] = (mid[0] - in_min) * (out_max - out_min) / (in_max - in_min) + out_min
+            mid[1] = (mid[1] - in_min) * (out_max - out_min) / (in_max - in_min) + out_min
+
             if mid[0] > 1:
                 mid[0] = 1
-            elif mid[0] < 0:
-                mid[0] = 0
+            elif mid[0] < -1:
+                mid[0] = -1
 
             if mid[1] > 1:
                 mid[1] = 1
-            elif mid[1] < 0:
-                mid[1] = 0
+            elif mid[1] < -1:
+                mid[1] = -1
+
+        if height is not None and width is not None and mid is not None:
+            height *= Values.CAMERA_HEIGHT
+            width *= Values.CAMERA_WIDTH
+            sides_ratio = width - height
+            if sides_ratio < 0:
+                sides_ratio /= width
+
+                if mid[0] > 0:
+                    sides_ratio *= -1
+
+                if sides_ratio > 1:
+                    sides_ratio = 1
+                elif sides_ratio < -1:
+                    sides_ratio = -1
+            else:
+                sides_ratio = 0
 
         return mid, sides_ratio, pitch_input

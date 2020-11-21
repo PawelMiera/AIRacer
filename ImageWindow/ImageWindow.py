@@ -183,11 +183,10 @@ class ImageWindow(QMainWindow):
         self.timer.start(Values.GUI_UPDATE_MS)
 
     def show_image(self, image, display):
-        if not Values.WINDOWS_TESTS:
-            self.throttle_ppm_label.setText(str(round(self.main_loop.pids.ppm.last_values[2], 1)))
-            self.yaw_ppm_label.setText(str(round(self.main_loop.pids.ppm.last_values[3], 1)))
-            self.roll_ppm_label.setText(str(round(self.main_loop.pids.ppm.last_values[0], 1)))
-            self.pitch_ppm_label.setText(str(round(self.main_loop.pids.ppm.last_values[1], 1)))
+        self.throttle_ppm_label.setText(str(round(self.main_loop.pids.ppm.last_values[2], 1)))
+        self.yaw_ppm_label.setText(str(round(self.main_loop.pids.ppm.last_values[3], 1)))
+        self.roll_ppm_label.setText(str(round(self.main_loop.pids.ppm.last_values[0], 1)))
+        self.pitch_ppm_label.setText(str(round(self.main_loop.pids.ppm.last_values[1], 1)))
         if image is not None:
             img = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
             disp_size = img.shape[1], img.shape[0]
@@ -209,7 +208,9 @@ class ImageWindow(QMainWindow):
         elif event.key() == 16777216:
             self.pid_stop()
         elif event.key() == 16777264:
-            self.on_click_slow_land()    
+            self.on_click_slow_land()
+        elif event.key() == 16777265:
+            self.on_click_go()
         #print(event.key())
 
     def show_pid_values(self):

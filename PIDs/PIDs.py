@@ -1,8 +1,7 @@
 from PID.PID import PID
 from settings.settings import PIDSettings as ps
 from settings.settings import Values
-if not Values.WINDOWS_TESTS:
-    from PPM.PPM import My_PPM
+from PPM.PPM import My_PPM
 from threading import Timer
 import csv
 import os
@@ -13,9 +12,8 @@ class PIDs:
     def __init__(self):
         self._timer = None
         self.dt = ps.PID_PPM_UPDATE_TIME
-        self.is_running = False
-        if not Values.WINDOWS_TESTS:            # do wywalenia pozniej bo szkoda obliczen
-            self.ppm = My_PPM()
+        self.is_running = False          # do wywalenia pozniej bo szkoda obliczen
+        self.ppm = My_PPM()
         self.update_ppm = False
         self.update_pids = False
         self.first_start = True
@@ -33,8 +31,8 @@ class PIDs:
 
         if Values.WRITE_TO_FILE:
             self.file = open('inputs_outputs.csv', 'a')
-        if not Values.WINDOWS_TESTS:
-            self.ppm.update_ppm_channels([1500, 1500, 1000, 1500, 1100, 1800, 1000, 1000])
+
+        self.ppm.update_ppm_channels([1500, 1500, 1000, 1500, 1100, 1800, 1000, 1000])
         self.start()
 
     def start(self):
@@ -70,8 +68,7 @@ class PIDs:
         self.first_start = True
         self.hold_possition = True
         self.starting = False
-        if not Values.WINDOWS_TESTS:
-            self.ppm.update_ppm_channels([1500, 1500, 1000, 1500, 1100, 1800, 1000, 1000])
+        self.ppm.update_ppm_channels([1500, 1500, 1000, 1500, 1100, 1800, 1000, 1000])
 
     def go_for_it(self):
         if self.hold_possition:
@@ -88,68 +85,50 @@ class PIDs:
         self.update_ppm = False         ################## ??????????? moze cos byc  nie tak
         self.update_pids = False
         self.first_start = True
-        if not Values.WINDOWS_TESTS:
-            self.ppm.update_ppm_channels([1500, 1500, 1000, 1500, 1100, 1800, 1000, 1000])
+        self.ppm.update_ppm_channels([1500, 1500, 1000, 1500, 1100, 1800, 1000, 1000])
         if Values.WRITE_TO_FILE:
             self.file.close()
 
 
     def send_ppm(self):
+        if self.first_start:
+            print("Starting sequence!!")
+            self.first_start = False
+            self.starting = True
+            self.slow_landing = False
+            self.ppm.update_ppm_channels([1500, 1500, 1000, 1500, 1100, 1800, 1000, 1000])
+            time.sleep(1)
+            self.ppm.update_ppm_channels([1500, 1500, 1000, 1500, 1800, 1800, 1000, 1000])
+            time.sleep(1)
+            self.ppm.update_ppm_channels([1500, 1500, 1000, 1500, 1800, 1100, 1000, 1000])
+            time.sleep(1)
+            self.ppm.update_ppm_channels([1500, 1500, 1900, 1500, 1800, 1100, 1000, 1000])
+            time.sleep(5)
+            self.ppm.update_ppm_channels([1500, 1500, 1500, 1500, 1800, 1100, 1000, 1000])
 
-        if not Values.WINDOWS_TESTS:
-            if self.first_start:
-                print("Starting sequence!!")
-                self.first_start = False
-                self.starting = True
-                self.slow_landing = False
-                self.ppm.update_ppm_channels([1500, 1500, 1000, 1500, 1100, 1800, 1000, 1000])
-                time.sleep(1)
-                self.ppm.update_ppm_channels([1500, 1500, 1000, 1500, 1800, 1800, 1000, 1000])
-                time.sleep(1)
-                self.ppm.update_ppm_channels([1500, 1500, 1000, 1500, 1800, 1100, 1000, 1000])
-                time.sleep(1)
-                self.ppm.update_ppm_channels([1500, 1500, 1900, 1500, 1800, 1100, 1000, 1000])
-                time.sleep(5)
-                self.ppm.update_ppm_channels([1500, 1500, 1500, 1500, 1800, 1100, 1000, 1000])
+            self.starting = False
+            if Values.WRITE_TO_FILE:
+                self.file.write("start \n")
+            print("Started!!")
 
-                self.starting = False
-                if Values.WRITE_TO_FILE:
-                    self.file.write("start \n")
-                print("Started!!")
+        pitch = int(self.pitchPID.output_ppm)
+        yaw = int(self.yawPID.output_ppm)
+        roll = int(self.rollPID.output_ppm)
+        throttle = int(self.throttlePID.output_ppm)
 
-            pitch = int(self.pitchPID.output_ppm)
-            yaw = int(self.yawPID.output_ppm)
-            roll = int(self.rollPID.output_ppm)
-            throttle = int(self.throttlePID.output_ppm)
+        throttle = 1900
 
-            roll_with_yaw = yaw - 1500 + roll
+        if not self.hold_possition:
+            pitch = 1600
 
-            if roll_with_yaw > 2000:
-                roll_with_yaw = 2000
-            elif roll_with_yaw < 1000:
-                roll_with_yaw = 1000
+        if self.slow_landing:
+            throttle = 1120
+            roll = 1500
+            pitch = 1500
+            yaw = 1500
 
-            if not self.hold_possition:
-                pitch = 1600
-
-            throttle = 1900
-            
-            if self.slow_landing:
-                throttle = 1120
-                roll_with_yaw = 1500
-                pitch = 1500
-                roll = 1500
-
-            vals = [roll_with_yaw, pitch, throttle, roll, 1800, 1100, 1000, 1000]
-            self.ppm.update_ppm_channels(vals)
-        else:
-            pitch = int(self.pitchPID.output_ppm)
-            yaw = int(self.yawPID.output_ppm)
-            roll = int(self.rollPID.output_ppm)
-            throttle = int(self.throttlePID.output_ppm)
-
-            roll_with_yaw = yaw - 1500 + roll
-            print(roll_with_yaw, roll, yaw)
+        vals = [roll, pitch, throttle, yaw, 1800, 1100, 1000, 1000]
+        self.ppm.update_ppm_channels(vals)
 
     def calculate_pids(self):
         if self.update_pids:
@@ -163,18 +142,17 @@ class PIDs:
             self.throttlePID.reset()
             self.pitchPID.reset()
 
-    def update(self, mid, ratio, pitch_input):
-        in_min = 0
-        in_max = 1
-        out_max = 1
-        out_min = -1
-        mid[0] = (mid[0] - in_min) * (out_max - out_min) / (in_max - in_min) + out_min
-        mid[1] = -((mid[1] - in_min) * (out_max - out_min) / (in_max - in_min) + out_min)
-        if mid[0] < 0:
-            ratio *= -1
-        self.yawPID.update(-ratio)
-        self.rollPID.update(-mid[0])
-        self.throttlePID.update(-mid[1])
+    def update(self, mid, sides_ratio, pitch_input):
+
+        roll_input = (- mid[0] * ps.MID_INFLUENCE) - (sides_ratio * ps.SIDES_RATIO_INFLUENCE)
+
+        yaw_input = - mid[0]
+
+        throttle_input = - mid[1]
+
+        self.rollPID.update(roll_input)
+        self.yawPID.update(yaw_input)
+        self.throttlePID.update(throttle_input)
         self.pitchPID.update(pitch_input)
 
     def get_pid_values(self):

@@ -1,6 +1,7 @@
 import time
-import pigpio
 from settings.settings import Values
+if not Values.WINDOWS_TESTS:
+    import pigpio
 
 
 class X:
@@ -86,18 +87,19 @@ class X:
 
 class My_PPM:
     def __init__(self):
-        self.pi = pigpio.pi()
+        if not Values.WINDOWS_TESTS:
+            self.pi = pigpio.pi()
         
+            if not self.pi.connected:
+                print("Error PPM not working!")
+
+            self.pi.wave_tx_stop()  # Start with a clean slate.
+
+            self.ppm = X(self.pi, Values.PPM_PIN, frame_ms=20)
+
         self.last_values = [1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500]
-        
-        if not self.pi.connected:
-            print("Error PPM not working!")
 
-        self.pi.wave_tx_stop()  # Start with a clean slate.
-
-        self.ppm = X(self.pi, Values.PPM_PIN, frame_ms=20)
-
-        self.update_ppm_channels([1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000]) 
+        self.update_ppm_channels([1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000])
 
         print("PPM started!")
 
@@ -108,8 +110,10 @@ class My_PPM:
                 send = True
         if send:
             self.last_values = values
-            self.ppm.update_channels(values)
+            if not Values.WINDOWS_TESTS:
+                self.ppm.update_channels(values)
 
     def stop(self):
-        self.ppm.cancel()
-        self.pi.stop()
+        if not Values.WINDOWS_TESTS:
+            self.ppm.cancel()
+            self.pi.stop()
