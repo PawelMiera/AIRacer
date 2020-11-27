@@ -18,6 +18,7 @@ class PIDs:
         self.update_pids = False
         self.first_start = True
         self.starting = False
+
         self.slow_landing = False
         values = self.get_pid_values()
         self.yawPID = PID(ps.YAW_SETPOINT, 1000, 2000, float(values[0][0]), float(values[1][0]), float(values[2][0]))
@@ -26,14 +27,59 @@ class PIDs:
         self.pitchPID = PID(ps.PITCH_SETPOINT, 1000, 2000, float(values[0][3]), float(values[1][3]), float(values[2][3]))
         
         self.last_time = time.time()
-
+        self.gate_lost = False
         self.hold_possition = True
+        self.seen_gate_time = 0
+        self.finding_mode = 0
+        self.last_mode_time = 0
 
         if Values.WRITE_TO_FILE:
             self.file = open('inputs_outputs.csv', 'a')
 
         self.ppm.update_ppm_channels([1500, 1500, 1000, 1500, 1100, 1800, 1000, 1000])
         self.start()
+
+    def update(self, mid, sides_ratio, pitch_input):
+
+        if pitch_input is None:
+            pitch_input = ps.PITCH_SETPOINT
+
+        if mid is None:
+            if (time.time() - self.seen_gate_time > 1.5) and not self.first_start:
+                if not self.gate_lost:
+                    print("Gate lost!")
+                    self.finding_mode = 0
+                    self.last_mode_time = time.time()
+                self.gate_lost = True
+            mid = (ps.ROLL_SETPOINT, ps.THROTTLE_SETPOINT)
+        else:
+            self.gate_lost = False
+            self.seen_gate_time = time.time()
+
+            variability = abs(mid[0]) + abs(sides_ratio)
+
+            if variability < 0.3:                                      # mozna dodac opoznienie np 50 ms
+                pitch_input = -0.7
+            elif variability < 0.5:
+                pitch_input = -0.4
+            elif variability < 0.7:
+                pitch_input = -0.2
+            else:
+                pitch_input = 0
+
+        if sides_ratio is None:
+            sides_ratio = 0
+
+        roll_input = (- mid[0] * ps.MID_INFLUENCE) - (sides_ratio * ps.SIDES_RATIO_INFLUENCE)
+
+        yaw_input = - mid[0]
+
+        throttle_input = - mid[1]
+
+        self.rollPID.update(roll_input)
+        self.yawPID.update(yaw_input)
+        self.throttlePID.update(throttle_input)
+        self.pitchPID.update(pitch_input)
 
     def start(self):
         if not self.is_running:
@@ -58,7 +104,6 @@ class PIDs:
         else:
             print("Started slow landing!!")
             self.slow_landing = True
-
 
     def land(self):
         print("Landing!!")
@@ -89,13 +134,13 @@ class PIDs:
         if Values.WRITE_TO_FILE:
             self.file.close()
 
-
     def send_ppm(self):
         if self.first_start:
             print("Starting sequence!!")
             self.first_start = False
             self.starting = True
             self.slow_landing = False
+            self.seen_gate_time = time.time() + 8
             self.ppm.update_ppm_channels([1500, 1500, 1000, 1500, 1100, 1800, 1000, 1000])
             time.sleep(1)
             self.ppm.update_ppm_channels([1500, 1500, 1000, 1500, 1800, 1800, 1000, 1000])
@@ -103,7 +148,7 @@ class PIDs:
             self.ppm.update_ppm_channels([1500, 1500, 1000, 1500, 1800, 1100, 1000, 1000])
             time.sleep(1)
             self.ppm.update_ppm_channels([1500, 1500, 1900, 1500, 1800, 1100, 1000, 1000])
-            time.sleep(5)
+            time.sleep(2)
             self.ppm.update_ppm_channels([1500, 1500, 1500, 1500, 1800, 1100, 1000, 1000])
 
             self.starting = False
@@ -116,8 +161,6 @@ class PIDs:
         roll = int(self.rollPID.output_ppm)
         throttle = int(self.throttlePID.output_ppm)
 
-        throttle = 1900
-
         if not self.hold_possition:
             pitch = 1600
 
@@ -126,6 +169,28 @@ class PIDs:
             roll = 1500
             pitch = 1500
             yaw = 1500
+
+        if self.gate_lost:
+            roll = 1500
+            throttle = 1500
+            pitch = 1500
+            yaw = 1500
+            if self.finding_mode == 0:
+                yaw = 1600
+            elif self.finding_mode == 1:
+                yaw = 1400
+            elif self.finding_mode == 2:
+                yaw = 1400
+            elif self.finding_mode == 3:
+                yaw = 1600
+            elif self.finding_mode == 4:
+                pitch = 1600
+
+            if time.time() - self.last_mode_time > 1.8:
+                self.last_mode_time = time.time()
+                self.finding_mode += 1
+                if self.finding_mode > 4:
+                    self.finding_mode = 0
 
         vals = [roll, pitch, throttle, yaw, 1800, 1100, 1000, 1000]
         self.ppm.update_ppm_channels(vals)
@@ -141,19 +206,6 @@ class PIDs:
             self.rollPID.reset()
             self.throttlePID.reset()
             self.pitchPID.reset()
-
-    def update(self, mid, sides_ratio, pitch_input):
-
-        roll_input = (- mid[0] * ps.MID_INFLUENCE) - (sides_ratio * ps.SIDES_RATIO_INFLUENCE)
-
-        yaw_input = - mid[0]
-
-        throttle_input = - mid[1]
-
-        self.rollPID.update(roll_input)
-        self.yawPID.update(yaw_input)
-        self.throttlePID.update(throttle_input)
-        self.pitchPID.update(pitch_input)
 
     def get_pid_values(self):
         values = []

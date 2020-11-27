@@ -37,7 +37,7 @@ class MainLoop(Thread):
                     break
 
                 self.frame = self.camera.get_frame()
-                self.frame = cv2.imread("4.jpg")
+                self.frame = cv2.imread("175.jpg")
                 if self.frame is None:
                     continue
                 mid, ratio, pitch_input = self.detector.detect(self.frame)  # mid liczony od: lewy gorny rog

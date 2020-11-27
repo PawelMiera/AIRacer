@@ -100,17 +100,13 @@ class ImageWindow(QMainWindow):
         self.update_button.clicked.connect(self.on_click_update)
         self.layout.addWidget(self.update_button, 5, 1)
 
-        self.stop_button = QPushButton("Start PIDs")
-        self.stop_button.clicked.connect(self.on_click_update_pids)
-        self.layout.addWidget(self.stop_button, 6, 1)
-
-        self.start_button = QPushButton("Start PIDs and PPM")
+        self.start_button = QPushButton("Start")
         self.start_button.clicked.connect(self.on_click_start)
-        self.layout.addWidget(self.start_button, 6, 2)
+        self.layout.addWidget(self.start_button, 6, 1)
 
-        self.update_button = QPushButton("Go")
+        self.update_button = QPushButton("Forwards")
         self.update_button.clicked.connect(self.on_click_go)
-        self.layout.addWidget(self.update_button, 6, 3)
+        self.layout.addWidget(self.update_button, 6, 2)
 
         self.stop_button = QPushButton("Stop")
         self.stop_button.clicked.connect(self.on_click_stop)
@@ -118,7 +114,7 @@ class ImageWindow(QMainWindow):
         
         self.stop_button = QPushButton("Slow land!")
         self.stop_button.clicked.connect(self.on_click_slow_land)
-        self.layout.addWidget(self.stop_button, 5, 4)
+        self.layout.addWidget(self.stop_button, 6, 3)
 
         self.displays.addWidget(self.disp)
 
@@ -175,7 +171,6 @@ class ImageWindow(QMainWindow):
 
     def pid_stop(self):
         self.main_loop.pids.land()
-
 
     def start(self):
         self.timer = QTimer(self)
