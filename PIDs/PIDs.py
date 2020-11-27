@@ -32,6 +32,7 @@ class PIDs:
         self.seen_gate_time = 0
         self.finding_mode = 0
         self.last_mode_time = 0
+        self.last_variability = 1
 
         if Values.WRITE_TO_FILE:
             self.file = open('inputs_outputs.csv', 'a')
@@ -44,6 +45,11 @@ class PIDs:
         if pitch_input is None:
             pitch_input = ps.PITCH_SETPOINT
 
+        if sides_ratio is None:
+            sides_ratio = 0
+
+        variability = 1
+
         if mid is None:
             if (time.time() - self.seen_gate_time > 1.5) and not self.first_start:
                 if not self.gate_lost:
@@ -52,11 +58,12 @@ class PIDs:
                     self.last_mode_time = time.time()
                 self.gate_lost = True
             mid = (ps.ROLL_SETPOINT, ps.THROTTLE_SETPOINT)
+            variability = self.last_variability
         else:
             self.gate_lost = False
             self.seen_gate_time = time.time()
-
             variability = abs(mid[0]) + abs(sides_ratio)
+            self.last_variability = variability
 
             if variability < 0.3:                                      # mozna dodac opoznienie np 50 ms
                 pitch_input = -0.7
@@ -67,8 +74,7 @@ class PIDs:
             else:
                 pitch_input = 0
 
-        if sides_ratio is None:
-            sides_ratio = 0
+
 
         roll_input = (- mid[0] * ps.MID_INFLUENCE) - (sides_ratio * ps.SIDES_RATIO_INFLUENCE)
 
