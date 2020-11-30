@@ -104,6 +104,12 @@ class My_PPM:
         print("PPM started!")
 
     def update_ppm_channels(self, values):
+        if Values.OUTPUT_LIMIT:
+            for i in range(4):
+                if i != 2:
+                    if 1500 + Values.OUTPUT_LIMIT_VALUE > values[i] > 1500 - Values.OUTPUT_LIMIT_VALUE:
+                        values[i] = 1500
+
         send = False
         for i in range(len(values)):
             if values[i] != self.last_values[i]:

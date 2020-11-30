@@ -18,6 +18,10 @@ class Values:
 
     WINDOWS_TESTS = True
 
+    OUTPUT_LIMIT = False
+
+    OUTPUT_LIMIT_VALUE = 30
+
     CAMERA = 0
     CAMERA_WIDTH = 640
     CAMERA_HEIGHT = 480

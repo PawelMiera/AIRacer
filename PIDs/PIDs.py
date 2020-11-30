@@ -51,7 +51,7 @@ class PIDs:
         variability = 1
 
         if mid is None:
-            if (time.time() - self.seen_gate_time > 1.5) and not self.first_start:
+            if (time.time() - self.seen_gate_time > 2.5) and not self.first_start:
                 if not self.gate_lost:
                     print("Gate lost!")
                     self.finding_mode = 0
@@ -65,16 +65,18 @@ class PIDs:
             variability = abs(mid[0]) + abs(sides_ratio)
             self.last_variability = variability
 
-            if variability < 0.3:                                      # mozna dodac opoznienie np 50 ms
+            if variability < 0.2:                                      # mozna dodac opoznienie np 50 ms
                 pitch_input = -0.7
+            elif variability < 0.3:
+                pitch_input = -0.6
+            elif variability < 0.4:
+                pitch_input = -0.5
             elif variability < 0.5:
                 pitch_input = -0.4
             elif variability < 0.7:
-                pitch_input = -0.2
+                pitch_input = -0.3
             else:
-                pitch_input = 0
-
-
+                pitch_input = -0.2
 
         roll_input = (- mid[0] * ps.MID_INFLUENCE) - (sides_ratio * ps.SIDES_RATIO_INFLUENCE)
 
