@@ -14,7 +14,7 @@ class Values:
 
     REMOTE_CONTROL = False
 
-    WRITE_TO_FILE = False
+    WRITE_TO_FILE = True
 
     WINDOWS_TESTS = True
 

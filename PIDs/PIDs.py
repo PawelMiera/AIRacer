@@ -6,6 +6,8 @@ from threading import Timer
 import csv
 import os
 import time
+import logging
+from datetime import datetime
 
 
 class PIDs:
@@ -35,7 +37,13 @@ class PIDs:
         self.last_variability = 1
 
         if Values.WRITE_TO_FILE:
-            self.file = open('inputs_outputs.csv', 'a')
+
+            now = datetime.now()
+            fname = now.strftime('%Y-%m-%d_%H-%M-%S')
+            fname += '.log'
+            file_handler = [logging.FileHandler(filename=fname)]
+            logging.basicConfig(level=logging.INFO, format='%(message)s', handlers=file_handler)
+            #self.file = open('inputs_outputs.csv', 'a')
 
         self.ppm.update_ppm_channels([1500, 1500, 1000, 1500, 1100, 1800, 1000, 1000])
         self.start()
@@ -59,30 +67,36 @@ class PIDs:
                 self.gate_lost = True
             mid = (ps.ROLL_SETPOINT, ps.THROTTLE_SETPOINT)
             variability = self.last_variability
+
+            roll_input = (ps.ROLL_SETPOINT * ps.MID_INFLUENCE)
+
+            yaw_input = ps.ROLL_SETPOINT
+
+            throttle_input = ps.THROTTLE_SETPOINT
         else:
             self.gate_lost = False
             self.seen_gate_time = time.time()
             variability = abs(mid[0]) + abs(sides_ratio)
             self.last_variability = variability
 
-            if variability < 0.2:                                      # mozna dodac opoznienie np 50 ms
-                pitch_input = -0.7
-            elif variability < 0.3:
-                pitch_input = -0.6
-            elif variability < 0.4:
-                pitch_input = -0.5
-            elif variability < 0.5:
-                pitch_input = -0.4
-            elif variability < 0.7:
-                pitch_input = -0.3
-            else:
-                pitch_input = -0.2
+            roll_input = (- mid[0] * ps.MID_INFLUENCE) - (sides_ratio * ps.SIDES_RATIO_INFLUENCE)
 
-        roll_input = (- mid[0] * ps.MID_INFLUENCE) - (sides_ratio * ps.SIDES_RATIO_INFLUENCE)
+            yaw_input = - mid[0]
 
-        yaw_input = - mid[0]
+            throttle_input = - mid[1]
 
-        throttle_input = - mid[1]
+        if variability < 0.2:                                      # mozna dodac opoznienie np 50 ms
+            pitch_input = -0.7
+        elif variability < 0.3:
+            pitch_input = -0.6
+        elif variability < 0.4:
+            pitch_input = -0.5
+        elif variability < 0.5:
+            pitch_input = -0.4
+        elif variability < 0.7:
+            pitch_input = -0.3
+        else:
+            pitch_input = -0.2
 
         self.rollPID.update(roll_input)
         self.yawPID.update(yaw_input)
@@ -139,8 +153,8 @@ class PIDs:
         self.update_pids = False
         self.first_start = True
         self.ppm.update_ppm_channels([1500, 1500, 1000, 1500, 1100, 1800, 1000, 1000])
-        if Values.WRITE_TO_FILE:
-            self.file.close()
+        #if Values.WRITE_TO_FILE:
+        #self.file.close()
 
     def send_ppm(self):
         if self.first_start:
@@ -155,13 +169,13 @@ class PIDs:
             time.sleep(1)
             self.ppm.update_ppm_channels([1500, 1500, 1000, 1500, 1800, 1100, 1000, 1000])
             time.sleep(1)
-            self.ppm.update_ppm_channels([1500, 1500, 1900, 1500, 1800, 1100, 1000, 1000])
+            self.ppm.update_ppm_channels([1500, 1500, 1500, 1500, 1800, 1100, 1000, 1000])
             time.sleep(2)
             self.ppm.update_ppm_channels([1500, 1500, 1500, 1500, 1800, 1100, 1000, 1000])
 
             self.starting = False
             if Values.WRITE_TO_FILE:
-                self.file.write("start \n")
+                logging.info("start \n")
             print("Started!!")
 
         pitch = int(self.pitchPID.output_ppm)
@@ -241,5 +255,5 @@ class PIDs:
     def write_to_file(self):
         line = str(self.yawPID.value) + "," + str(self.yawPID.output_ppm) + "," + str(self.rollPID.value) + "," + \
               str(self.rollPID.output_ppm) + "," + str(self.throttlePID.value) + "," + \
-              str(self.throttlePID.output_ppm) + "," + str(self.pitchPID.value) + "," + str(self.pitchPID.output_ppm) + "\n"
-        self.file.write(line)
+              str(self.throttlePID.output_ppm)
+        logging.info(line)
