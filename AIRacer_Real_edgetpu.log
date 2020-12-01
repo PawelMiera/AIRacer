@@ -1,0 +1,26 @@
+Edge TPU Compiler version 14.1.317412892
+Input: AIRacer_Real.tflite
+Output: AIRacer_Real_edgetpu.tflite
+
+Operator                       Count      Status
+
+CONCATENATION                  2          More than one subgraph is not supported
+CUSTOM                         1          Operation is working on an unsupported data type
+MAX_POOL_2D                    6          Mapped to Edge TPU
+MAX_POOL_2D                    9          More than one subgraph is not supported
+PACK                           24         Tensor has unsupported rank (up to 3 innermost dimensions mapped)
+ADD                            12         Mapped to Edge TPU
+ADD                            19         More than one subgraph is not supported
+MEAN                           8          Mapped to Edge TPU
+MUL                            6          More than one subgraph is not supported
+MUL                            10         Mapped to Edge TPU
+REDUCE_MAX                     5          More than one subgraph is not supported
+REDUCE_MAX                     3          Mapped to Edge TPU
+DEPTHWISE_CONV_2D              19         Mapped to Edge TPU
+DEPTHWISE_CONV_2D              23         More than one subgraph is not supported
+LOGISTIC                       6          More than one subgraph is not supported
+LOGISTIC                       11         Mapped to Edge TPU
+CONV_2D                        23         More than one subgraph is not supported
+CONV_2D                        63         Mapped to Edge TPU
+RESHAPE                        32         More than one subgraph is not supported
+RESHAPE                        12         Tensor has unsupported rank (up to 3 innermost dimensions mapped)
