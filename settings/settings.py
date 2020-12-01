@@ -3,12 +3,12 @@ import os
 
 class Values:
 
-    MODEL_PATH = os.path.join('models', 'AIRacer_FPV_corners.tflite')
+    MODEL_PATH = os.path.join('models', 'AIRacer_Real_edgetpu.tflite')
 
     DETECTION_THRESHOLD = 0.499  #0.61
 
-    USE_EDGE_TPU = False
-    PRINT_FPS = True
+    USE_EDGE_TPU = True
+    PRINT_FPS = False
     SEND_IMAGES_WIFI = False
     SENT_IMAGES_SIZE = (200, 200)
 
@@ -16,7 +16,7 @@ class Values:
 
     WRITE_TO_FILE = True
 
-    WINDOWS_TESTS = True
+    WINDOWS_TESTS = False
 
     OUTPUT_LIMIT = False
 
@@ -37,12 +37,12 @@ class Values:
 
 
 class PIDSettings:
-    PID_PPM_UPDATE_TIME = 1
+    PID_PPM_UPDATE_TIME = 0.03
 
-    PID_I_MAX = 400
+    PID_I_MAX = 300
     """wszystkie wartości od 0 do 1"""
 
-    THROTTLE_SETPOINT = 0.8                    #### wieksze wyzej leci
+    THROTTLE_SETPOINT = 0.7                   #### wieksze wyzej leci
 
     ROLL_SETPOINT = 0                            #### wiecej to bramka bardziej po lewej stronie drona
 
@@ -50,7 +50,7 @@ class PIDSettings:
 
     PITCH_SETPOINT = 0                    ### wieksze to bliżej bramki
 
-    SIDES_RATIO_INFLUENCE = 0.5
+    SIDES_RATIO_INFLUENCE = 0
     MID_INFLUENCE = 1
 
 
@@ -60,4 +60,4 @@ class Constants:
     LD = 4
     LU = 1
     CORNERS = 1
-    GATE = 2
+    GATE = 0

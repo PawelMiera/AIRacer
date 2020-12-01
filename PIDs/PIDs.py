@@ -85,7 +85,7 @@ class PIDs:
 
             throttle_input = - mid[1]
 
-        if variability < 0.2:                                      # mozna dodac opoznienie np 50 ms
+        """if variability < 0.2:                                      # mozna dodac opoznienie np 50 ms
             pitch_input = -0.7
         elif variability < 0.3:
             pitch_input = -0.6
@@ -96,8 +96,13 @@ class PIDs:
         elif variability < 0.7:
             pitch_input = -0.3
         else:
-            pitch_input = -0.2
-
+            pitch_input = -0.2"""
+        
+        if pitch_input > -0.3:
+            pitch_input = -0.8
+        else:
+            pitch_input = -0.28
+    
         self.rollPID.update(roll_input)
         self.yawPID.update(yaw_input)
         self.throttlePID.update(throttle_input)
@@ -147,6 +152,7 @@ class PIDs:
 
     def stop(self):
         print("Closing pids!")
+        logging.info("stop")
         self._timer.cancel()
         self.is_running = False
         self.update_ppm = False         ################## ??????????? moze cos byc  nie tak
@@ -174,23 +180,17 @@ class PIDs:
             self.ppm.update_ppm_channels([1500, 1500, 1500, 1500, 1800, 1100, 1000, 1000])
 
             self.starting = False
+            self.throttlePID.reset()
+            self.rollPID.reset()
             if Values.WRITE_TO_FILE:
                 logging.info("start \n")
             print("Started!!")
+            
 
         pitch = int(self.pitchPID.output_ppm)
         yaw = int(self.yawPID.output_ppm)
         roll = int(self.rollPID.output_ppm)
         throttle = int(self.throttlePID.output_ppm)
-
-        if not self.hold_possition:
-            pitch = 1600
-
-        if self.slow_landing:
-            throttle = 1120
-            roll = 1500
-            pitch = 1500
-            yaw = 1500
 
         if self.gate_lost:
             roll = 1500
@@ -198,13 +198,13 @@ class PIDs:
             pitch = 1500
             yaw = 1500
             if self.finding_mode == 0:
-                yaw = 1600
+                yaw = 1700
             elif self.finding_mode == 1:
-                yaw = 1400
+                yaw = 1300
             elif self.finding_mode == 2:
-                yaw = 1400
+                yaw = 1300
             elif self.finding_mode == 3:
-                yaw = 1600
+                yaw = 1700
             elif self.finding_mode == 4:
                 pitch = 1600
 
@@ -213,7 +213,19 @@ class PIDs:
                 self.finding_mode += 1
                 if self.finding_mode > 4:
                     self.finding_mode = 0
+        
+        if not self.hold_possition:
+            pitch = 1530
+            
+        throttle = 1550
 
+        if self.slow_landing:
+            throttle = 1020
+            roll = 1500
+            pitch = 1500
+            yaw = 1500
+        
+        
         vals = [roll, pitch, throttle, yaw, 1800, 1100, 1000, 1000]
         self.ppm.update_ppm_channels(vals)
 
@@ -253,7 +265,8 @@ class PIDs:
         self.throttlePID.Kd = float(values[2][2])
 
     def write_to_file(self):
-        line = str(self.yawPID.value) + "," + str(self.yawPID.output_ppm) + "," + str(self.rollPID.value) + "," + \
-              str(self.rollPID.output_ppm) + "," + str(self.throttlePID.value) + "," + \
-              str(self.throttlePID.output_ppm)
-        logging.info(line)
+        if self.update_ppm:
+            line = str(self.yawPID.value) + "," + str(self.yawPID.output_ppm) + "," + str(self.rollPID.value) + "," + \
+                  str(self.rollPID.output_ppm) + "," + str(self.throttlePID.value) + "," + \
+                  str(self.throttlePID.output_ppm)
+            logging.info(line)
