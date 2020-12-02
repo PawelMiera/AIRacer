@@ -35,15 +35,15 @@ class PIDs:
         self.finding_mode = 0
         self.last_mode_time = 0
         self.last_variability = 1
+        self.lastloop = 0
 
         if Values.WRITE_TO_FILE:
-
             now = datetime.now()
             fname = now.strftime('%Y-%m-%d_%H-%M-%S')
             fname += '.log'
+            fname = os.path.join('logs', fname)
             file_handler = [logging.FileHandler(filename=fname)]
             logging.basicConfig(level=logging.INFO, format='%(message)s', handlers=file_handler)
-            #self.file = open('inputs_outputs.csv', 'a')
 
         self.ppm.update_ppm_channels([1500, 1500, 1000, 1500, 1100, 1800, 1000, 1000])
         self.start()
@@ -83,7 +83,7 @@ class PIDs:
 
             yaw_input = - mid[0]
 
-            throttle_input = - mid[1]
+            throttle_input = mid[1]
 
         """if variability < 0.2:                                      # mozna dodac opoznienie np 50 ms
             pitch_input = -0.7
@@ -134,6 +134,7 @@ class PIDs:
 
     def land(self):
         print("Landing!!")
+        logging.info("stop")
         self.slow_landing = False
         self.update_ppm = False
         self.update_pids = False
@@ -152,7 +153,6 @@ class PIDs:
 
     def stop(self):
         print("Closing pids!")
-        logging.info("stop")
         self._timer.cancel()
         self.is_running = False
         self.update_ppm = False         ################## ??????????? moze cos byc  nie tak
@@ -194,7 +194,7 @@ class PIDs:
 
         if self.gate_lost:
             roll = 1500
-            throttle = 1500
+            throttle = self.ppm.last_values[2]
             pitch = 1500
             yaw = 1500
             if self.finding_mode == 0:
@@ -216,16 +216,13 @@ class PIDs:
         
         if not self.hold_possition:
             pitch = 1530
-            
-        throttle = 1550
 
         if self.slow_landing:
             throttle = 1020
             roll = 1500
             pitch = 1500
             yaw = 1500
-        
-        
+
         vals = [roll, pitch, throttle, yaw, 1800, 1100, 1000, 1000]
         self.ppm.update_ppm_channels(vals)
 

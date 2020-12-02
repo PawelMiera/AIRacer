@@ -71,8 +71,7 @@ class Detector:
                     object_name = "Corner"
                 elif object_class == Constants.GATE:
                     object_name = "Gate"
-                else:
-                    object_name = "Corner"
+
                 label = '%s: %d%%' % (object_name, int(scores[i] * 100))
                 labelSize, baseLine = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 0.7, 2)
                 label_ymin = max(ymin, labelSize[1] + 10)
@@ -161,7 +160,7 @@ class Detector:
         if len(best_corners) > 0:
             corners_score /= len(best_corners)
             
-        if Gate_score == 0 and (corners_score == 0 or len(best_corners) == 1):
+        if Gate_score == 0 and corners_score == 0:
             return None, None, None
 
         if Gate_score >= corners_score or (Gate_score != 0 and len(best_corners) == 1):
@@ -340,11 +339,17 @@ class Detector:
                 y_max = max(y)
                 y_min = min(y)
 
+                mid = [(x_min + x_max) / 2, (y_min + y_max) / 2]
+
                 if (x_max - x_min)/x_max > 0.1 and (y_max - y_min)/x_max > 0.1:
 
-                    mid = [(x_min + x_max) / 2, (y_min + y_max) / 2]
                     width = x_max - x_min
                     height = y_max - y_min
+            elif len(best_corners) == 1:
+                c0 = [(boxes[best_corners[0]][3], boxes[best_corners[0]][2]),
+                      (boxes[best_corners[0]][1], boxes[best_corners[0]][0])]
+                c0 = np.mean(c0, axis=0)
+                mid = c0
 
         if height is not None and width is not None:
             pitch_width = width
