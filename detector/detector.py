@@ -80,7 +80,7 @@ class Detector:
                               (xmin + labelSize[0], label_ymin + baseLine - 10), (255, 255, 255), cv2.FILLED)
                 cv2.putText(frame, label, (xmin, label_ymin - 7), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 0), 2)
 
-        mid, sides_ratio, pitch_input = self.check_detections(good_boxes, good_classes, good_scores)
+        mid, sides_ratio, pitch_input, left_to_right = self.check_detections(good_boxes, good_classes, good_scores)
 
         x = None
         y = None
@@ -100,26 +100,12 @@ class Detector:
         y = (y - in_min) * (out_max - out_min) / (in_max - in_min) + out_min
         cv2.circle(frame, (int(x * width), int(y * height)), 15, (0, 0, 255), 2)
 
-        if sides_ratio is not None:
-            cv2.arrowedLine(frame, (int(width * 0.5), int(height*0.02)), (int(width * 0.5 + sides_ratio*100), int(height*0.02)),
+        if left_to_right is not None:
+            cv2.arrowedLine(frame, (int(width * 0.5), int(height*0.02)), (int(width * 0.5 + left_to_right*100), int(height*0.02)),
                             (0, 0, 0), 2, tipLength=0.2)
-        """if mid is None:
 
-            mid = [a, b]
-
-        if ratio is not None:
-            print(int(ratio*100))
-            cv2.arrowedLine(frame, (int(width * 0.5), int(height*0.02)), (int(width * 0.5 + ratio*100), int(height*0.02)),
-                            (0, 0, 0), 2, tipLength=0.2)
-        else:
-            ratio = PIDSettings.YAW_SETPOINT
-
-        if pitch_input is None:
-            pitch_input = PIDSettings.PITCH_SETPOINT
-
-        cv2.circle(frame, (int(mid[0] * width), int(mid[1] * height)), 15, (0, 0, 255), 2)"""
         self.frame = frame
-        return mid, sides_ratio, pitch_input
+        return mid, sides_ratio, pitch_input, left_to_right
 
     def check_detections(self, boxes, classes, scores):
         Gate = -1
@@ -135,6 +121,7 @@ class Detector:
         pitch_width = None
         sides_ratio = None
         pitch_input = None
+        left_to_right = None
 
         for i in range(len(scores)):
             if classes[i] == Constants.CORNERS:
@@ -176,10 +163,21 @@ class Detector:
                 c1 = [(boxes[best_corners[1]][3], boxes[best_corners[1]][2]), (boxes[best_corners[1]][1], boxes[best_corners[1]][0])]
                 c2 = [(boxes[best_corners[2]][3], boxes[best_corners[2]][2]), (boxes[best_corners[2]][1], boxes[best_corners[2]][0])]
                 c3 = [(boxes[best_corners[3]][3], boxes[best_corners[3]][2]), (boxes[best_corners[3]][1], boxes[best_corners[3]][0])]
-                c0 = np.mean(c0, axis=0)
-                c1 = np.mean(c1, axis=0)
-                c2 = np.mean(c2, axis=0)
-                c3 = np.mean(c3, axis=0)
+                c0 = np.mean(c0, axis=0).tolist()
+                c1 = np.mean(c1, axis=0).tolist()
+                c2 = np.mean(c2, axis=0).tolist()
+                c3 = np.mean(c3, axis=0).tolist()
+
+                corner_list = [c0, c1, c2, c3]
+                corner_list = sorted(corner_list)
+
+                left = abs(corner_list[0][1] - corner_list[1][1])
+                right = abs(corner_list[2][1] - corner_list[3][1])
+
+                if left > right:
+                    left_to_right = (left - right) / left
+                else:
+                    left_to_right = (left - right) / right
 
                 y = []
                 x = []
@@ -262,12 +260,23 @@ class Detector:
                 c1 = [(boxes[best_corners[1]][3], boxes[best_corners[1]][2]), (boxes[best_corners[1]][1], boxes[best_corners[1]][0])]
                 c2 = [(boxes[best_corners[2]][3], boxes[best_corners[2]][2]), (boxes[best_corners[2]][1], boxes[best_corners[2]][0])]
                 c3 = [(boxes[best_corners[3]][3], boxes[best_corners[3]][2]), (boxes[best_corners[3]][1], boxes[best_corners[3]][0])]
-                c0 = np.mean(c0, axis=0)
-                c1 = np.mean(c1, axis=0)
-                c2 = np.mean(c2, axis=0)
-                c3 = np.mean(c3, axis=0)
-                points = [c0, c1, c2, c3]
-                mid = np.mean(points, axis=0)
+                c0 = np.mean(c0, axis=0).tolist()
+                c1 = np.mean(c1, axis=0).tolist()
+                c2 = np.mean(c2, axis=0).tolist()
+                c3 = np.mean(c3, axis=0).tolist()
+
+                corner_list = [c0, c1, c2, c3]
+                corner_list = sorted(corner_list)
+
+                left = abs(corner_list[0][1] - corner_list[1][1])
+                right = abs(corner_list[2][1] - corner_list[3][1])
+
+                if left > right:
+                    left_to_right = (left - right) / left
+                else:
+                    left_to_right = (right - left) / right
+
+                mid = np.mean(corner_list, axis=0)
                 y = []
                 x = []
 
@@ -403,4 +412,4 @@ class Detector:
             else:
                 sides_ratio = 0
 
-        return mid, sides_ratio, pitch_input
+        return mid, sides_ratio, pitch_input, left_to_right

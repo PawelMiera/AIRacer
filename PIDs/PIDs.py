@@ -48,7 +48,7 @@ class PIDs:
         self.ppm.update_ppm_channels([1500, 1500, 1000, 1500, 1100, 1800, 1000, 1000])
         self.start()
 
-    def update(self, mid, sides_ratio, pitch_input):
+    def update(self, mid, sides_ratio, pitch_input, left_to_right):
 
         if pitch_input is None:
             pitch_input = ps.PITCH_SETPOINT
@@ -103,7 +103,7 @@ class PIDs:
         else:
             pitch_input = -0.28
     
-        self.rollPID.update(roll_input)
+        self.rollPID.update(left_to_right)
         self.yawPID.update(yaw_input)
         self.throttlePID.update(throttle_input)
         self.pitchPID.update(pitch_input)
