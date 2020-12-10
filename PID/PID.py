@@ -30,6 +30,8 @@ class PID:
         self.sum_e = 0
 
     def calculate(self):
+        self.dt = time.time() - self.time
+        self.time = time.time()
         if self.value is not None:
             e = self.set_point - self.value
 

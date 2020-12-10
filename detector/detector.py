@@ -148,7 +148,7 @@ class Detector:
             corners_score /= len(best_corners)
             
         if Gate_score == 0 and corners_score == 0:
-            return None, None, None
+            return None, None, None, None
 
         if Gate_score >= corners_score or (Gate_score != 0 and len(best_corners) == 1):
             max_y = boxes[Gate][2]
