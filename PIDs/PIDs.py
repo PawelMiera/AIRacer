@@ -14,7 +14,7 @@ class PIDs:
     def __init__(self):
         self._timer = None
         self.dt = ps.PID_PPM_UPDATE_TIME
-        self.is_running = False          # do wywalenia pozniej bo szkoda obliczen
+        self.is_running = False
         self.ppm = My_PPM()
         self.update_ppm = False
         self.update_pids = False
@@ -182,6 +182,8 @@ class PIDs:
             self.starting = False
             self.throttlePID.reset()
             self.rollPID.reset()
+            self.yawPID.reset()
+            self.pitchPID.reset()
             if Values.WRITE_TO_FILE:
                 logging.info("start \n")
             print("Started!!")

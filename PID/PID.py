@@ -28,6 +28,7 @@ class PID:
         self.output_ppm = self.start_output_ppm
         self.last_e = None
         self.sum_e = 0
+        self.time = time.time()
 
     def calculate(self):
         self.dt = time.time() - self.time
